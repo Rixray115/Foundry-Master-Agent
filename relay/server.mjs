@@ -16,6 +16,7 @@
 
 import http from "node:http";
 import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { WebSocketServer } from "ws";
 import { verifySignature } from "./lib/auth.mjs";
 import { audit } from "./lib/audit.mjs";
@@ -24,13 +25,25 @@ import { timingSafeEqual } from "node:crypto";
 const PORT = Number(process.env.PI_BRIDGE_PORT ?? 7401);
 const HOST = "127.0.0.1"; // estricto localhost
 
-// Cargar secret: env var o archivo
+// Cargar secret: env var → .secret relativo al proyecto → Linux-only fallback
 async function loadSecret() {
   if (process.env.PI_BRIDGE_SECRET) return process.env.PI_BRIDGE_SECRET;
+
+  const projectSecret = join(import.meta.dirname, "..", ".secret");
   try {
-    return (await readFile("/root/pi-foundry/.secret", "utf8")).trim();
+    return (await readFile(projectSecret, "utf8")).trim();
   } catch {
-    console.error("FATAL: no se pudo cargar el secret. Set PI_BRIDGE_SECRET o crea /root/pi-foundry/.secret");
+    // Linux-only fallback for legacy deployments — NEVER on Windows (Node resolves /root/ to C:\root\)
+    if (process.platform === "linux") {
+      try {
+        return (await readFile("/root/pi-foundry/.secret", "utf8")).trim();
+      } catch {}
+    }
+
+    const tried = [`PI_BRIDGE_SECRET env var`, projectSecret];
+    if (process.platform === "linux") tried.push("/root/pi-foundry/.secret");
+    console.error(`FATAL: no se pudo cargar el secret. Paths tried:`);
+    for (const p of tried) console.error(`  - ${p}`);
     process.exit(1);
   }
 }
@@ -69,6 +82,8 @@ function resolvePending(id, payload) {
 }
 
 // ─── HTTP server (PI → relay) ──────────────────────────────────
+const RAG_PROXY_URL = process.env.RAG_PROXY_URL ?? "http://127.0.0.1:7402";
+
 const httpServer = http.createServer(async (req, res) => {
   const ip = req.socket.remoteAddress;
 
@@ -76,6 +91,11 @@ const httpServer = http.createServer(async (req, res) => {
   if (ip !== "127.0.0.1" && ip !== "::1" && ip !== "::ffff:127.0.0.1") {
     return res.writeHead(403).end("forbidden: non-localhost");
   }
+
+  // CORS headers (para que el browser de Foundry pueda hacer fetch)
+  res.setHeader("access-control-allow-origin", "*");
+  res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
+  if (req.method === "OPTIONS") return res.writeHead(204).end();
 
   // 2. Rate limit
   if (rateLimited(ip)) {
@@ -87,6 +107,34 @@ const httpServer = http.createServer(async (req, res) => {
     return res.writeHead(200, { "content-type": "application/json" }).end(
       JSON.stringify({ ok: true, gmConnected: !!gmSocket, world: gmWorld })
     );
+  }
+
+  // 3b. RAG proxy — reenvía requests del GM module al RAG server (sin auth)
+  if (req.url === "/rag-proxy" || req.url.startsWith("/rag-proxy/")) {
+    let body = "";
+    for await (const chunk of req) body += chunk;
+
+    try {
+      const ragPath = req.url === "/rag-proxy"
+        ? "/health"
+        : "/" + req.url.slice("/rag-proxy/".length);
+
+      const ragRes = await fetch(`${RAG_PROXY_URL}${ragPath}`, {
+        method: req.method,
+        headers: { "content-type": "application/json" },
+        body: req.method === "POST" ? body : undefined,
+      });
+
+      const ragBody = await ragRes.text();
+      return res.writeHead(ragRes.status, {
+        "content-type": ragRes.headers.get("content-type") ?? "text/plain",
+      }).end(ragBody);
+    } catch (err) {
+      console.error(`[relay] RAG proxy error (${req.url}):`, err.message);
+      return res.writeHead(502, { "content-type": "application/json" }).end(
+        JSON.stringify({ ok: false, error: `RAG unreachable: ${err.message}` })
+      );
+    }
   }
 
   // 4. Solo POST en /

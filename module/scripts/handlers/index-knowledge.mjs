@@ -10,15 +10,16 @@
  * Returns: { ok: boolean, module: string }
  */
 
-const RAG_URL = "http://127.0.0.1:7402";
+// Usa el relay como proxy — Foundry V14 (Electron) no puede hacer fetch directo a localhost:7402
+const RELAY_RAG_PROXY = "http://127.0.0.1:7401/rag-proxy";
 
 export async function indexKnowledge({ module, content, title }) {
   if (!module || !content) {
     throw new Error("Se requieren 'module' y 'content'.");
   }
 
-  // Enviar al RAG server para indexar
-  const response = await fetch(`${RAG_URL}/index-document`, {
+  // Enviar al RAG server vía relay proxy (CORS-friendly desde el browser de Foundry)
+  const response = await fetch(`${RELAY_RAG_PROXY}/index-document`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
