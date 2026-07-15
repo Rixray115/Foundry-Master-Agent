@@ -95,6 +95,7 @@ const httpServer = http.createServer(async (req, res) => {
   // CORS headers (para que el browser de Foundry pueda hacer fetch)
   res.setHeader("access-control-allow-origin", "*");
   res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
+  res.setHeader("access-control-allow-headers", "Content-Type, Authorization, X-Requested-With");
   if (req.method === "OPTIONS") return res.writeHead(204).end();
 
   // 2. Rate limit
