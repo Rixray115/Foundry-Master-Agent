@@ -319,6 +319,28 @@ export const SCHEMAS = {
     },
   },
 
+  // ─── Delete entities by ID (cleanup/rollback) ──────────────
+  delete_entities: {
+    type: "object",
+    properties: {
+      actors: { type: "array", items: { type: "string" } },
+      journals: { type: "array", items: { type: "string" } },
+      macros: { type: "array", items: { type: "string" } },
+      scenes: { type: "array", items: { type: "string" } },
+      tokens: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["sceneId", "id"],
+          properties: {
+            sceneId: { type: "string" },
+            id: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+
   // ─── Unsafe eval (escape hatch, deshabilitado por defecto) ───
   "unsafe.eval": {
     type: "object",

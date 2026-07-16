@@ -108,6 +108,11 @@ const COMMAND_NAMES = [
   "analyze_module",
   "index_knowledge",
   "play_animation",
+  "create_macro",
+  "create_region",
+  "wire_animation",
+  "verify_wiring",
+  "delete_entities",
 ] as const;
 
 export default function foundryExtension(pi: ExtensionAPI) {
@@ -132,6 +137,11 @@ Comandos disponibles:
 - analyze_module: extrae API surface de un módulo. args: { moduleId: string }. Devuelve globals, hooks, classes, methods, readme
 - index_knowledge: persiste conocimiento generado en el RAG. args: { module: string, content: string, title? }
 - play_animation: reproduce animación JB2A via Sequencer. args: { tokenId, file, scale?, tint?, persist?, belowTokens?, fadeIn?, fadeOut?, stretchToTokenId?, delay?, name? }
+- create_macro: crea macros (script/chat) en el mundo. args: { macros: [{ name, type: "script"|"chat", command, img?, scope? }] }
+- create_region: crea regiones embebidas en una escena (V14). args: { regions: [{ name, shape: { type }, sceneId?, color? }] }
+- wire_animation: cablea animación JB2A en uso de habilidad/ítem (hook postUseActivity). args: { animations?: [{ itemName, file, tint?, scale?, persist?, loc? }], persistentAuras?: [{ tokenId, file }], defaultTargetTokenId? }
+- verify_wiring: verifica estado de cableado de animaciones de un actor. args: { actorId? }
+- delete_entities: elimina entidades por ID (cleanup/rollback). args: { actors?: string[], journals?: string[], macros?: string[], scenes?: string[], tokens?: [{ sceneId, id }] }. Solo borra IDs explícitos; reporta deleted/notFound.
 
 SIEMPRE consulta foundry_search_docs antes de emitir comandos para usar la API correcta de la versión de Foundry.`,
     promptSnippet: "Execute structured commands on FoundryVTT (create actors, place tokens, etc.)",

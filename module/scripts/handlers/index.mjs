@@ -24,6 +24,7 @@ import { indexKnowledge } from "./index-knowledge.mjs";
 import { playAnimation } from "./play-animation.mjs";
 import { wireAnimation } from "./wire-animation.mjs";
 import { verifyWiring } from "./verify-wiring.mjs";
+import { deleteEntities } from "./delete-entities.mjs";
 
 export const handlers = {
   ping,
@@ -45,5 +46,6 @@ export const handlers = {
   play_animation: playAnimation,
   wire_animation: wireAnimation,
   verify_wiring: verifyWiring,
+  delete_entities: deleteEntities,
   "unsafe.eval": unsafeEval,
 };

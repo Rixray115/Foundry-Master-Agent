@@ -4,7 +4,7 @@
 
 | ID | Título | Versión | Función |
 |---|---|---|---|
-| dnd5e | Dungeons & Dragons Fifth Edition | 5.3.2 | Sistema D&D 2024 |
+| dnd5e | Dungeons & Dragons Fifth Edition | 5.3.3 | Sistema D&D 2024 |
 
 ## Módulos de Automatización
 
@@ -69,18 +69,26 @@
 | monks-scene-navigation | Scene Navigation | 13.03 | Navegación de escenas |
 | theripper-premium-hub | Module Hub | 5.0.7 | Hub de TheRipper93 |
 
+## Módulos aprendidos (2026-07-16, vía analyze_module + index_knowledge)
+
+| ID | Título | Versión | Función |
+|---|---|---|---|
+| dfreds-convenient-effects | DFreds Convenient Effects | 9.0.2 | Efectos activos pre-hechos (condiciones) |
+| dice-so-nice | Dice So Nice! | 6.2.8 | Dados 3D (visual) |
+| monks-active-tiles | Monk's Active Tile Triggers | 14.01 | Triggers en tiles/regiones |
+
 ## Módulo PI
 
 | ID | Título | Versión | Función |
 |---|---|---|---|
-| pi-bridge | PI Bridge | 0.1.0 | Agente IA ↔ FoundryVTT |
+| pi-bridge | PI Bridge | 0.2.2 | Agente IA ↔ FoundryVTT |
 
 ## Versiones Soportadas
 
 | Componente | Versión Requerida |
 |---|---|
-| FoundryVTT | V13 (build 351) |
-| dnd5e | 5.3.2 |
+| FoundryVTT | V14 |
+| dnd5e | 5.3.3 |
 | Node.js | 20+ (recomendado 24) |
 | PI Agent | @earendil-works/pi-coding-agent |
 

@@ -11,6 +11,8 @@ export class BridgeClient {
   #running = false;
   #reconnectDelay = 2000;
   #maxReconnectDelay = 30000;
+  #concurrency = 3; // comandos independientes en paralelo (por defecto)
+  #active = 0;      // comandos en vuelo actualmente
 
   constructor(cfg, router) {
     this.cfg = cfg;
@@ -87,13 +89,23 @@ export class BridgeClient {
     this.#drain();
   }
 
-  async #drain() {
-    if (this.#running || this.#queue.length === 0) return;
-    this.#running = true;
+  // Ejecuta comandos con un límite de concurrencia para no serializar
+  // comandos independientes. El agente PI ya serializa comandos con
+  // dependencias de orden (espera la respuesta antes de enviar el siguiente),
+  // así que el paralelismo sólo acelera cargas independientes (imports en lote, etc.).
+  #drain() {
+    while (this.#queue.length > 0 && this.#active < this.#concurrency) {
+      const cmd = this.#queue.shift();
+      this.#active++;
+      this.#runOne(cmd).finally(() => {
+        this.#active--;
+        this.#drain();
+      });
+    }
+  }
 
-    const cmd = this.#queue.shift();
+  async #runOne(cmd) {
     console.log(`[pi-bridge] Ejecutando comando: ${cmd.command} (id: ${cmd.id})`);
-
     try {
       const data = await this.router.execute(cmd);
       this.#send({ type: "result", id: cmd.id, ok: true, data });
@@ -106,9 +118,6 @@ export class BridgeClient {
         error: err.message,
         stack: err.stack,
       });
-    } finally {
-      this.#running = false;
-      this.#drain(); // siguiente comando en la cola
     }
   }
 

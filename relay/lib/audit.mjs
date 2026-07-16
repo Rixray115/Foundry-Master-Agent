@@ -1,7 +1,12 @@
 import { appendFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const LOG_PATH = process.env.PI_BRIDGE_AUDIT_LOG || "/root/pi-foundry/relay/audit.jsonl";
+// Cross-platform default: write audit.jsonl next to this script.
+// (The previous default `/root/pi-foundry/relay/audit.jsonl` only works on Linux;
+//  on Windows Node resolves `/root/...` to `C:\root\...`, silently misrouting the log.)
+const LOG_PATH =
+  process.env.PI_BRIDGE_AUDIT_LOG || fileURLToPath(new URL("audit.jsonl", import.meta.url));
 
 let initialized = false;
 
