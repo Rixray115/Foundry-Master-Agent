@@ -46,6 +46,25 @@ const CURATED = {
   "bg3-hud-dnd5e": "0.4.1",
   "audio-tagger": "1.5.4",
   "document-tagger": "1.1.0",
+  // Monk's suite (2026-07-16)
+  "monks-bloodsplats": "14.01",
+  "monks-combat-details": "14.02",
+  "monks-combat-marker": "12.01",
+  "monks-common-display": "14.01",
+  "monks-hotbar-expansion": "14.01",
+  "monks-little-details": "14.01",
+  "monks-player-settings": "14.01",
+  "monks-scene-navigation": "14.02",
+  "monks-sound-enhancements": "14.01",
+  "monks-tokenbar": "14.01",
+  "monks-wall-enhancement": "14.01",
+  // Misceláneos (2026-07-16)
+  "monks-chat-timer": "14.01",
+  "cat": "0.0.5",
+  "dice-calculator": "3.7.0",
+  "augur-nexus": "1.1.9",
+  "dorman-lakelys-crit-fumble-tables": "1.4.0",
+  "_chatcommands": "2.0.6",
 };
 
 export async function syncModules() {

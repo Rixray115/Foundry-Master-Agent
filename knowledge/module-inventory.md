@@ -93,6 +93,23 @@
 | bg3-hud-dnd5e | BG3 Inspired HUD - D&D5e | 0.4.1 | Adapter 5e para bg3-hud-core |
 | audio-tagger | Audio Tagger | 1.5.4 | Etiquetas para playlists/sons (API .api) |
 | document-tagger | Document Tagger | 1.1.0 | Etiquetas para documentos genéricos |
+| monks-bloodsplats | Monk's Bloodsplats | 14.01 | Charcos de sangre al morir (campo limpio) |
+| monks-combat-details | Monk's Combat Details | 14.02 | QoL combate (turnos, CR, playlist, barras) |
+| monks-combat-marker | Monk's Combat Marker | 12.01 | Disco animado en el turno actual |
+| monks-common-display | Monk's Common Display | 14.01 | Pantalla común para mesa presencial |
+| monks-hotbar-expansion | Monk's Hotbar Expansion | 14.01 | Hotbar con todas las filas visibles |
+| monks-little-details | Monk's Little Details | 14.01 | QoL UI (filepicker, status, macros, polymorph) |
+| monks-player-settings | Monk's Player Settings | 14.01 | GM edita/sincroniza settings de jugadores |
+| monks-scene-navigation | Monk's Scene Navigation | 14.02 | Navegación de escenas + permisos por escena |
+| monks-sound-enhancements | Monk's Sound Enhancements | 14.01 | Mejoras playlist/sons + SFX actor/ítem (API global) |
+| monks-tokenbar | Monk's TokenBar | 14.01 | Barra tokens + ST/contested/XP (MonksTokenBarAPI) |
+| monks-wall-enhancement | Monk's Wall Enhancement | 14.01 | Mejoras de muros (freehand, join, split) |
+| monks-chat-timer | Monk's Chat Timer | 14.01 | Timer en chat via /timer (requiere _chatcommands) |
+| cat | Coven's Automation Toolkit | 0.0.5 | API de automatización sobre Midi-QOL/DAE (global cat) |
+| dice-calculator | Dice Tray | 3.7.0 | Bandeja de dados en chat (dice-calculator.* hooks) |
+| augur-nexus | Augur: Nexus | 1.1.9 | Router/meta módulo (solo init) |
+| dorman-lakelys-crit-fumble-tables | Dorman Lakely's Crit/Fumble | 1.4.0 | Tablas crítico/pifia por nivel (global DormanLakely) |
+| _chatcommands | Chat Commander | 2.0.6 | Framework de comandos /timer (global _chatcommands) |
 
 ## Módulo PI
 
