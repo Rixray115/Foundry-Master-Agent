@@ -7,6 +7,9 @@
 import { ping } from "./ping.mjs";
 import { listActiveModules } from "./list-modules.mjs";
 import { createActors } from "./create-actors.mjs";
+import { createMacro } from "./create-macro.mjs";
+import { createRegion } from "./create-region.mjs";
+import { updateActors } from "./update-actors.mjs";
 import { placeTokens } from "./place-tokens.mjs";
 import { createJournal } from "./create-journal.mjs";
 import { runMacro } from "./run-macro.mjs";
@@ -24,6 +27,9 @@ export const handlers = {
   ping,
   list_active_modules: listActiveModules,
   create_actors: createActors,
+  create_macro: createMacro,
+  create_region: createRegion,
+  update_actors: updateActors,
   place_tokens: placeTokens,
   create_journal: createJournal,
   run_macro: runMacro,

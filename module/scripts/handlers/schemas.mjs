@@ -38,6 +38,73 @@ export const SCHEMAS = {
     },
   },
 
+  // ─── Crear macros ───────────────────────────────────────────
+  create_macro: {
+    type: "object",
+    required: ["macros"],
+    properties: {
+      macros: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["name", "type", "command"],
+          properties: {
+            name: { type: "string" },
+            type: { type: "string", enum: ["script", "chat"] },
+            command: { type: "string" },
+            img: { type: "string" },
+            scope: { type: "string", enum: ["global", "actor"] },
+          },
+        },
+      },
+    },
+  },
+
+  // ─── Crear regiones (V14, embebidas en Scene) ───────────────
+  create_region: {
+    type: "object",
+    required: ["regions"],
+    properties: {
+      regions: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["name", "shape"],
+          properties: {
+            name: { type: "string" },
+            shape: {
+              type: "object",
+              required: ["type"],
+              properties: { type: { type: "string" } },
+            },
+            sceneId: { type: "string" },
+            color: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+
+  // ─── Actualizar actors existentes ────────────────────────────
+  update_actors: {
+    type: "object",
+    required: ["updates"],
+    properties: {
+      updates: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["actorId"],
+          properties: {
+            actorId: { type: "string" },
+            systemData: { type: "object" },
+            data: { type: "object" },
+          },
+        },
+      },
+    },
+  },
+
   // ─── Colocar tokens en la escena ─────────────────────────────
   place_tokens: {
     type: "object",
