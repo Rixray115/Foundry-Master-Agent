@@ -78,8 +78,9 @@ export async function wireAnimation({ animations = [], persistentAuras = [], def
         // El lanzador siempre debe existir (actor con token en escena).
         const source = resolveToken("self", activity.item.actor, STATE.defaultTargetTokenId);
         if (!source) return;
-        // El objetivo es opcional: si no hay ninguno, se usa el lanzador como fallback.
-        const target = resolveToken("target", activity.item.actor, STATE.defaultTargetTokenId);
+        // El objetivo: de la config de uso (ataque y salvacion) o de los objetivos de escena.
+        const target = resolveActivityTarget(activity, usageConfig, STATE.defaultTargetTokenId);
+        console.log("[pi-bridge] wire_animation:", name, "source=", source?.id, "target=", target?.id);
         let seq = new Sequence().effect().file(spec.file);
         if (spec.scale && spec.scale !== 1) seq = seq.scale(spec.scale);
         if (spec.tint) seq = seq.tint(spec.tint);
@@ -135,6 +136,36 @@ function resolveToken(loc, actor, defaultTargetTokenId) {
     if (t) return t;
     return canvas.tokens.placeables.find((x) => x.actor === actor) || null;
   }
+  const sel = game.user.targets?.size ? game.user.targets.first() : null;
+  if (sel) return sel;
+  if (defaultTargetTokenId) return canvas.tokens.get(defaultTargetTokenId) || null;
+  return null;
+}
+
+// Resuelve el token objetivo de forma robusta: usa la configuracion de uso
+// (funciona para actividades de ataque Y de salvacion) y cae a game.user.targets.
+function firstTokenFrom(coll) {
+  if (!coll) return null;
+  let arr = coll;
+  try {
+    if (coll instanceof Set) arr = [...coll];
+    else if (typeof coll[Symbol.iterator] === "function") arr = [...coll];
+  } catch { /* mantener como esta */ }
+  if (!arr || !arr.length) return null;
+  const e = arr[0];
+  if (!e) return null;
+  if (e instanceof Token) return e;
+  if (e?.token instanceof Token) return e.token;
+  if (e?.object instanceof Token) return e.object;
+  if (typeof e === "string") {
+    try { const d = fromUuidSync(e); return d?.object || d?.token?.object || null; } catch { return null; }
+  }
+  return null;
+}
+
+function resolveActivityTarget(activity, usageConfig, defaultTargetTokenId) {
+  const fromCfg = firstTokenFrom(usageConfig?.targets);
+  if (fromCfg) return fromCfg;
   const sel = game.user.targets?.size ? game.user.targets.first() : null;
   if (sel) return sel;
   if (defaultTargetTokenId) return canvas.tokens.get(defaultTargetTokenId) || null;
