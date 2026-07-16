@@ -7,7 +7,17 @@ import { runIngest } from "./ingest.mjs";
 
 try {
   const total = await runIngest({
-    modules: ["sequencer", "tagger", "midi-qol"],
+    modules: [
+      "sequencer",
+      "document-tagger",
+      "midi-qol",
+      "plutonium",
+      "dae",
+      "JB2A_DnD5e",
+      "ActiveAuras",
+      "automated-animations-for-all",
+      "chris-premades"
+    ],
   });
   console.log(`\n✅ Ingesta completa: ${total} documentos indexados.`);
   process.exit(0);

@@ -3,12 +3,11 @@
  */
 
 import { readFile } from "node:fs/promises";
-import { chunkSource } from "../lib/chunker.mjs";
+import { chunkSource, getFoundryVersion } from "../lib/chunker.mjs";
 import { embedBatch, getEmbedDim } from "../lib/embed.mjs";
 import { insertChunks, dropTable, count } from "../lib/store.mjs";
 
-const FOUNDRY_MJS = "/root/foundry/resources/app/public/scripts/foundry.mjs";
-const FOUNDRY_VERSION = "13.351";
+const FOUNDRY_MJS = "C:/Program Files/Foundry Virtual Tabletop/resources/app/public/scripts/foundry.mjs";
 
 /**
  * Ingesta la API core de Foundry.
@@ -39,23 +38,30 @@ export async function ingestFoundry() {
  * Ingesta un módulo de terceros (Sequencer, Tagger, MidiQOL, etc.)
  */
 export async function ingestModule(moduleId) {
-  const modulePath = `/root/foundryuserdata/Data/modules/${moduleId}`;
+  const modulePath = `C:/Users/ricar/AppData/Local/FoundryVTT/Data/modules/${moduleId}`;
   console.log(`[ingest] === Módulo: ${moduleId} ===`);
 
-  const { glob } = await import("node:fs/promises");
-  const { execSync } = await import("node:child_process");
+  const { readdir, stat } = await import("node:fs/promises");
+  const { join } = await import("node:path");
 
-  // Encontrar archivos JS/MJS del módulo
-  let files;
-  try {
-    files = execSync(`find ${modulePath} -name "*.js" -o -name "*.mjs" | head -50`, { encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
-  } catch {
-    console.log(`[ingest] No se encontraron archivos para ${moduleId}`);
-    return [];
+  // Encontrar archivos JS/MJS del módulo (Windows-compatible)
+  let files = [];
+  async function scanDir(dir) {
+    try {
+      const entries = await readdir(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = join(dir, entry.name);
+        if (entry.isDirectory() && !entry.name.startsWith("node_modules")) {
+          await scanDir(fullPath);
+        } else if (entry.isFile() && (entry.name.endsWith(".js") || entry.name.endsWith(".mjs"))) {
+          files.push(fullPath);
+        }
+      }
+    } catch {
+      // skip unreadable dirs
+    }
   }
+  await scanDir(modulePath);
 
   const allChunks = [];
   for (const file of files) {
@@ -78,9 +84,9 @@ export async function ingestModule(moduleId) {
 }
 
 /**
- * Procesa chunks: genera embeddings y los inserta en LanceDB.
+ * Procesa chunks: genera embeddings y los inserta en LevelDB (vía store.insertChunks).
  */
-async function processChunks(chunks, batchSize = 50) {
+async function processChunks(chunks, batchSize = 200) {
   const total = chunks.length;
   console.log(`[ingest] Procesando ${total} chunks en lotes de ${batchSize}...`);
 
@@ -131,6 +137,15 @@ export async function runIngest({ modules = ["sequencer", "tagger", "midi-qol"] 
   await processChunks(allChunks);
 
   const total = await count();
-  console.log(`[ingest] Ingesta completa. Total documentos en LanceDB: ${total}`);
+  console.log(`[ingest] Ingesta completa. Total documentos en LevelDB: ${total}`);
+
+  // ⚠️ IMPORTANT: Restart the RAG server after re-ingest!
+  // The in-memory vector cache (store.mjs) holds stale data until the process is killed.
+  // Without restart, search() will query old cached vectors and report wrong counts.
+  // Kill only the specific PID holding port 7402 (not all node.exe processes):
+  //   netstat -ano | findstr :7402   → get PID
+  //   taskkill //PID <pid>           → kill only that process
+  console.log("[ingest] ⚠️ Restart the RAG server now to refresh the in-memory cache!");
+
   return total;
 }

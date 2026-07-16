@@ -5,7 +5,26 @@
  * Cada chunk = un símbolo documentado (clase, método, propiedad, typedef).
  */
 
-const FOUNDRY_VERSION = "13.351";
+import { readFileSync } from "node:fs";
+
+const FOUNDRY_PACKAGE_JSON = "C:/Program Files/Foundry Virtual Tabletop/resources/app/package.json";
+let _foundryVersion = null;
+
+/**
+ * Reads the Foundry version dynamically from package.json at runtime.
+ * Returns `${generation}.${build}` (e.g. "14.364"). Cached after first call.
+ * Falls back to hardcoded literal if the file can't be read.
+ */
+export function getFoundryVersion() {
+  if (_foundryVersion) return _foundryVersion;
+  try {
+    const pkg = JSON.parse(readFileSync(FOUNDRY_PACKAGE_JSON, "utf8"));
+    _foundryVersion = `${pkg.release.generation}.${pkg.release.build}`;
+  } catch {
+    _foundryVersion = "14.364"; // fallback if package.json is unreadable
+  }
+  return _foundryVersion;
+}
 
 /**
  * Extrae bloques JSDoc (/** ... *\/) de un source string.
@@ -245,7 +264,7 @@ export function chunkSource(source, { module = "core", sourceFile = "", filePath
       returns: parsed.returns,
       line: block.line,
       source: sourceFile || filePath,
-      foundry_version: FOUNDRY_VERSION,
+      foundry_version: getFoundryVersion(),
       module,
     });
   }

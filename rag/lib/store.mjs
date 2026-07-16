@@ -1,90 +1,131 @@
 /**
- * LanceDB Store — almacenamiento vectorial persistente.
+ * Vector Store — LevelDB persistence + in-memory brute-force cosine similarity.
  *
- * Tabla "foundry_docs" con columnas:
- *   text (string), vector (fixed-size<float>), symbol, kind, parent,
+ * Replaces LanceDB (corruption on Windows with heavy batch writes).
+ * Corpus: ~9,500 chunks × 384 dims ≈ 14 MB vectors → trivial for in-memory search.
+ *
+ * Schema per record:
+ *   text (string), vector (Float32Array), symbol, kind, parent,
  *   description, line, source, foundry_version, module
  */
 
-import lancedb from "@lancedb/lancedb";
+import { ClassicLevel as Level } from "classic-level";
+import { join } from "node:path";
+import { existsSync, mkdirSync } from "node:fs";
 
-const DB_PATH = process.env.RAG_LANCEDB_PATH ?? "/root/pi-foundry/rag/data/lancedb";
+const DB_PATH = process.env.RAG_LEVELDB_PATH ?? join(import.meta.dirname, "..", "data", "vectors");
 const TABLE_NAME = "foundry_docs";
 
+// Ensure directory exists
+if (!existsSync(DB_PATH)) {
+  mkdirSync(DB_PATH, { recursive: true });
+}
+
 let db = null;
-let table = null;
+let vectorsCache = null; // Map<id, {text, vector, symbol, kind, parent, description, line, source, foundry_version, module}>
+let nextId = 0;
+
+// ⚠️ GOTCHA: The in-memory vectorsCache is populated once on first access via loadCache().
+// After a re-ingest (dropTable + insertChunks), the LevelDB on disk has new data but the
+// in-memory cache still holds stale references. If you re-run ingest without restarting
+// the server, search() will query the old cached vectors and report wrong document counts.
+// ALWAYS restart the RAG server after re-ingesting to force loadCache() to reload from disk.
 
 /**
- * Abre (o crea) la conexión a LanceDB.
+ * Open (or create) the LevelDB database.
  */
 export async function getDB() {
   if (db) return db;
-  db = await lancedb.connect(DB_PATH);
+  db = new Level(DB_PATH);
+  await db.open();
+  console.log(`[rag] LevelDB abierto en ${DB_PATH}`);
   return db;
 }
 
 /**
- * Abre la tabla de documentos existente.
+ * Load all vectors from disk into memory cache.
  */
-export async function getTable() {
-  if (table) return table;
-  const db = await getDB();
-  const tableNames = await db.tableNames();
-  if (tableNames.includes(TABLE_NAME)) {
-    table = await db.openTable(TABLE_NAME);
-    console.log(`[rag] Tabla "${TABLE_NAME}" abierta.`);
-    return table;
+async function loadCache() {
+  if (vectorsCache) return vectorsCache;
+  const dbConn = await getDB();
+  vectorsCache = new Map();
+  nextId = 0;
+
+  for await (const [key, value] of dbConn.iterator()) {
+    const record = JSON.parse(value);
+    // Reconstruct Float32Array from stored array
+    record.vector = new Float32Array(record._vectorData);
+    delete record._vectorData;
+    vectorsCache.set(key, record);
+    const id = parseInt(key, 10);
+    if (id >= nextId) nextId = id + 1;
   }
-  return null;
+
+  console.log(`[rag] Cache cargada: ${vectorsCache.size} vectores en memoria.`);
+  return vectorsCache;
 }
 
 /**
- * Crea la tabla con el primer lote de datos (LanceDB infiere el schema).
- */
-export async function createTableWith(firstRecords) {
-  const db = await getDB();
-  table = await db.createTable(TABLE_NAME, firstRecords);
-  console.log(`[rag] Tabla "${TABLE_NAME}" creada con ${firstRecords.length} registros.`);
-  return table;
-}
-
-/**
- * Inserta chunks con sus embeddings.
- * Si la tabla no existe, la crea con el primer lote (schema inferido).
+ * Insert chunks with their embeddings.
  */
 export async function insertChunks(records) {
-  let tbl = await getTable();
-  if (!tbl) {
-    tbl = await createTableWith(records);
-    return;
+  const dbConn = await getDB();
+  const cache = await loadCache();
+
+  for (const record of records) {
+    const id = String(nextId++);
+    // Store vector as plain array for JSON serialization
+    record._vectorData = Array.from(record.vector);
+    delete record.vector;
+
+    await dbConn.put(id, JSON.stringify(record));
+    cache.set(id, { ...record, vector: new Float32Array(record._vectorData) });
+    delete record._vectorData; // restore for next iteration
   }
-  await tbl.add(records);
+
   console.log(`[rag] Insertados ${records.length} chunks.`);
 }
 
 /**
- * Búsqueda semántica.
- * @param {number[]} queryVector
+ * Cosine similarity between two vectors.
+ */
+function cosineSimilarity(a, b) {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+/**
+ * Semantic search via brute-force cosine similarity.
+ * @param {number[]} queryVector - Query embedding (384-dim)
  * @param {object} filters - { foundry_version?, module?, limit? }
- * @returns {Array<{text, symbol, kind, parent, description, line, source, foundry_version, module, _distance}>}
+ * @returns {Array<{text, symbol, kind, parent, description, line, source, foundry_version, module, score}>}
  */
 export async function search(queryVector, { foundry_version, module, limit = 5 } = {}) {
-  const table = await getTable();
-  if (!table) throw new Error("Índice no construido. Ejecuta la ingesta primero.");
+  const cache = await loadCache();
 
-  let query = table.search(queryVector).limit(limit * 3); // over-fetch para filtrar
+  if (cache.size === 0) throw new Error("Índice vacío. Ejecuta la ingesta primero.");
 
-  // LanceDB v0.5+ usa .where() para filtros SQL
-  const conditions = [];
-  if (foundry_version) conditions.push(`foundry_version = '${foundry_version}'`);
-  if (module) conditions.push(`module = '${module}'`);
-  if (conditions.length > 0) {
-    query = query.where(conditions.join(" AND "));
+  const queryVec = Array.isArray(queryVector) ? new Float32Array(queryVector) : queryVector;
+
+  // Build candidate list with scores
+  const candidates = [];
+  for (const [id, record] of cache) {
+    // Apply filters
+    if (foundry_version && record.foundry_version !== foundry_version) continue;
+    if (module && record.module !== module) continue;
+
+    const score = cosineSimilarity(queryVec, record.vector);
+    candidates.push({ ...record, _id: id, score });
   }
 
-  const results = await query.limit(limit).toArray();
-
-  return results.map((r) => ({
+  // Sort by descending similarity and take top-N
+  candidates.sort((a, b) => b.score - a.score);
+  const results = candidates.slice(0, limit).map(r => ({
     text: r.text,
     symbol: r.symbol,
     kind: r.kind,
@@ -94,28 +135,41 @@ export async function search(queryVector, { foundry_version, module, limit = 5 }
     source: r.source,
     foundry_version: r.foundry_version,
     module: r.module,
-    score: r._distance,
+    score: r.score,
   }));
+
+  return results;
 }
 
 /**
- * Cuenta total de documentos.
+ * Total document count.
  */
 export async function count() {
-  const table = await getTable();
-  if (!table) return 0;
-  return await table.countRows();
+  const cache = await loadCache();
+  return cache.size;
 }
 
 /**
- * Elimina y recrea la tabla (para re-ingesta limpia).
+ * Drop table (clear DB and cache).
  */
 export async function dropTable() {
-  const db = await getDB();
-  const tableNames = await db.tableNames();
-  if (tableNames.includes(TABLE_NAME)) {
-    await db.dropTable(TABLE_NAME);
-    console.log(`[rag] Tabla "${TABLE_NAME}" eliminada.`);
+  if (!db) {
+    db = new Level(DB_PATH);
+    await db.open();
   }
-  table = null;
+  await db.clear();
+  vectorsCache = null;
+  nextId = 0;
+  console.log(`[rag] Tabla "${TABLE_NAME}" eliminada.`);
+}
+
+/**
+ * Close database connection.
+ */
+export async function close() {
+  if (db) {
+    await db.close();
+    db = null;
+  }
+  vectorsCache = null;
 }
