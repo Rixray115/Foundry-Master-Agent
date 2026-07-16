@@ -38,6 +38,14 @@ const CURATED = {
   "plutonium-addon-automation": "0.8.4",
   "aeris-core": "13.0.23",
   "bg3-hud-core": "0.4.3",
+  // Aeris cinematic suite + BG3 HUD adapter + taggers (2026-07-16)
+  "aeris-animations": "13.0.9",
+  "aeris-cinematic-bars": "13.0.4",
+  "aeris-cinematic-view": "13.0.4",
+  "aeris-smooth-camera": "0.0.13",
+  "bg3-hud-dnd5e": "0.4.1",
+  "audio-tagger": "1.5.4",
+  "document-tagger": "1.1.0",
 };
 
 export async function syncModules() {

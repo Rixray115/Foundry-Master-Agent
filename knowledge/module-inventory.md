@@ -86,6 +86,13 @@
 | plutonium-addon-automation | Plutonium Addon: Automation | 0.8.4 | Automatización Midi en imports de Plutonium |
 | aeris-core | Aeris Core | 13.0.23 | Framework cinemático (chat/UI animada, lenis) |
 | bg3-hud-core | BG3 Inspired HUD - Core | 0.4.3 | HUD estilo BG3 (requiere adapter dnd5e) |
+| aeris-animations | Aeris Animations | 13.0.9 | Animaciones scriptadas (token/scene) |
+| aeris-cinematic-bars | Aeris Cinematic Bars | 13.0.4 | Barras/vignette cinemáticas (letterbox) |
+| aeris-cinematic-view | Aeris Cinematic View | 13.0.4 | Vista/cámara cinemática enfocada |
+| aeris-smooth-camera | Aeris Smooth Camera | 0.0.13 | Cámara del canvas con transiciones suaves |
+| bg3-hud-dnd5e | BG3 Inspired HUD - D&D5e | 0.4.1 | Adapter 5e para bg3-hud-core |
+| audio-tagger | Audio Tagger | 1.5.4 | Etiquetas para playlists/sons (API .api) |
+| document-tagger | Document Tagger | 1.1.0 | Etiquetas para documentos genéricos |
 
 ## Módulo PI
 
