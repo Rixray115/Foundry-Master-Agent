@@ -16,7 +16,11 @@
  *     tint?: string,           // hex, ej. "#66ccff"
  *     scale?: number,          // default 1
  *     persist?: boolean,       // default false
- *     loc?: "self" | "target", // default "target"
+ *     loc?: "self" | "source" | "target", // default "target"; "source" draws from caster to target (projectiles)
+ *
+ * Nota: para que un proyectil/línea (bolt, lance) salga DESDE el token del lanzador,
+ * usar loc:"source" (atLocation(caster).stretchTo(target)). "self" lo juega en el lanzador,
+ * "target" en el objetivo (o en el lanzador si no hay objetivo seleccionado).
  *     counterKey?: string,     // default: slug del itemName
  *   }>,
  *   persistentAuras?: Array<{  // feats pasivos sin actividad
@@ -52,7 +56,7 @@ export async function wireAnimation({ animations = [], persistentAuras = [], def
       tint: a.tint ?? null,
       scale: a.scale ?? 1,
       persist: !!a.persist,
-      loc: a.loc === "self" ? "self" : "target",
+      loc: a.loc === "source" ? "source" : a.loc === "self" ? "self" : "target",
       key,
     };
   }
@@ -71,13 +75,26 @@ export async function wireAnimation({ animations = [], persistentAuras = [], def
         const name = activity && activity.item ? activity.item.name : null;
         const spec = STATE.map[name];
         if (!spec) return;
-        const tok = resolveToken(spec.loc, activity.item.actor, STATE.defaultTargetTokenId);
-        if (!tok) return;
-        let seq = new Sequence().effect().file(spec.file).atLocation(tok);
+        // El lanzador siempre debe existir (actor con token en escena).
+        const source = resolveToken("self", activity.item.actor, STATE.defaultTargetTokenId);
+        if (!source) return;
+        // El objetivo es opcional: si no hay ninguno, se usa el lanzador como fallback.
+        const target = resolveToken("target", activity.item.actor, STATE.defaultTargetTokenId);
+        let seq = new Sequence().effect().file(spec.file);
         if (spec.scale && spec.scale !== 1) seq = seq.scale(spec.scale);
         if (spec.tint) seq = seq.tint(spec.tint);
         if (spec.persist) seq = seq.persist(true, { name: "pi-bridge-" + spec.key });
         else seq = seq.belowTokens();
+        if (spec.loc === "self") {
+          seq = seq.atLocation(source);
+        } else if (spec.loc === "source") {
+          // Proyectil/línea: desde el token del lanzador hasta el objetivo.
+          if (target) seq = seq.atLocation(source).stretchTo(target);
+          else seq = seq.atLocation(source);
+        } else {
+          // "target" (por defecto): en el objetivo, o en el lanzador si no hay objetivo.
+          seq = seq.atLocation(target || source);
+        }
         seq.play();
         STATE.counters[spec.key] = (STATE.counters[spec.key] || 0) + 1;
       } catch (e) {

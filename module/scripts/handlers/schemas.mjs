@@ -288,7 +288,7 @@ export const SCHEMAS = {
             tint: { type: "string" },
             scale: { type: "number" },
             persist: { type: "boolean" },
-            loc: { type: "string", enum: ["self", "target"] },
+            loc: { type: "string", enum: ["self", "source", "target"] },
             counterKey: { type: "string" },
           },
         },
