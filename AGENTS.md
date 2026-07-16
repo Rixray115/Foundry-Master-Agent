@@ -26,6 +26,9 @@ Docs are excluded from the commit hook by design. Refresh manually:
 ```
 graphify --update
 ```
-The graphify CLI is not on PATH; use the interpreter pinned at `graphify-out/.graphify_python`.
+The graphify CLI is not on PATH; use the interpreter pinned at `graphify-out/.graphify_python`
+(e.g. `"$(cat graphify-out/.graphify_python)" -m graphify --update`). Do NOT run the bare
+`graphify` CLI from a Git-Bash terminal: it writes a `.graphify_root` MSYS path (`/c/Users/...`)
+that the post-commit hook (native Windows Python) cannot resolve, which silently disables graph rebuilds.
 
 If the graph and reality disagree, trust the source code, fix the doc (`knowledge/*.md` / `ARCHITECTURE.md`), then `graphify --update`.
