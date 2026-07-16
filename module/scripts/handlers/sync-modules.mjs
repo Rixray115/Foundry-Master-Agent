@@ -27,6 +27,11 @@ const CURATED = {
   "dfreds-convenient-effects": "9.0.2",
   "dice-so-nice": "6.2.8",
   "monks-active-tiles": "14.01",
+  "tidy5e-sheet": "13.5.0",
+  "tokenizer-2": "1.2.3",
+  "swarm-reanimated": "14.0.2",
+  "advanced-macros": "2.4.0",
+  "psfx": "0.15.0",
 };
 
 export async function syncModules() {

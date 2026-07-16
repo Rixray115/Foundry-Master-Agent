@@ -76,6 +76,11 @@
 | dfreds-convenient-effects | DFreds Convenient Effects | 9.0.2 | Efectos activos pre-hechos (condiciones) |
 | dice-so-nice | Dice So Nice! | 6.2.8 | Dados 3D (visual) |
 | monks-active-tiles | Monk's Active Tile Triggers | 14.01 | Triggers en tiles/regiones |
+| tidy5e-sheet | Tidy 5e Sheets | 13.5.0 | Hojas de personaje alternativas (V14) |
+| tokenizer-2 | Tokenizer 2 | 1.2.3 | Editor de retratos de token (crop/mask/frame) |
+| swarm-reanimated | Swarms Reanimated | 14.0.2 | Convierte tokens en enjambres animados |
+| advanced-macros | Advanced Macros | 2.4.0 | Mejoras de macros (argumentos, drag-drop) |
+| psfx | PSFX - Peri's Sound Effects | 0.15.0 | Librería de SFX .ogg (con Sequencer) |
 
 ## Módulo PI
 
