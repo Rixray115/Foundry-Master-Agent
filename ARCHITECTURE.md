@@ -2,7 +2,7 @@
 
 ## Overview
 
-PI-Foundry is a three-component system that allows an AI agent (PI) to interact
+PI-Foundry is a three-component system (targets FoundryVTT V14) that allows an AI agent (PI) to interact
 with FoundryVTT through a secure, typed command interface.
 
 ```
@@ -15,7 +15,7 @@ with FoundryVTT through a secure, typed command interface.
      │  HTTP                                                    │
      ▼                                                          ▼
 ┌──────────┐                                            ┌──────────────┐
-│   RAG    │  Transformers.js + LanceDB                 │  FoundryVTT   │
+│   RAG    │  Transformers.js + LevelDB (cosine)       │  FoundryVTT   │
 │ Service  │  (embeddings locales, 384-dim)             │  Server       │
 │ :7402    │                                            │  :30001       │
 └──────────┘                                            └──────────────┘
@@ -51,21 +51,22 @@ Browser-side FoundryVTT module that executes commands:
 
 - **bridge-client.mjs**: WebSocket client, connects to relay, authenticates with shared secret
 - **command-router.mjs**: Validates command schema, dispatches to handler
-- **handlers/**: 15 typed command handlers:
+- **handlers/**: 18 typed command handlers (15 original + 3 added for V14):
   - `ping`, `list_active_modules`
   - `create_actors`, `add_items`, `place_tokens`
   - `create_journal`, `update_scene`
-  - `run_macro`, `execute_batch`
+  - `run_macro`, `execute_batch`, `play_animation`
   - `plutonium_import` (5etools import via Plutonium)
   - `sync_modules`, `analyze_module`, `index_knowledge` (auto-learning)
   - `unsafe_eval` (disabled by default)
+  - `update_actors`, `create_macro`, `create_region` *(added for V14)*
 
 ### 4. RAG Service (`rag/`)
 
 Node.js HTTP server providing semantic search over Foundry API documentation:
 
 - **Embeddings**: Transformers.js with `all-MiniLM-L6-v2` (384-dim, local, no API key)
-- **Vector store**: LanceDB (persistent, on-disk)
+- **Vector store**: LevelDB (`classic-level`) + in-memory brute-force cosine similarity (LanceDB removed — Windows corruption)
 - **Endpoints**:
   - `GET /health` — health check
   - `POST /search` — semantic search
@@ -112,7 +113,7 @@ PI agent
   → foundry_search_docs("create actor with system data")
   → HTTP POST to RAG (:7402)
   → Transformers.js embeds query (384-dim vector)
-  → LanceDB vector search (cosine similarity)
+  → LevelDB vector search + in-memory cosine similarity
   → Top-K results returned
   → PI uses API info to construct correct command
 ```

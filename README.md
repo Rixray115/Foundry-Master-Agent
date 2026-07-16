@@ -1,6 +1,6 @@
 # PI-Foundry: Agente IA para FoundryVTT
 
-Arquitectura que permite a un agente de IA (PI) interactuar nativamente con FoundryVTT V13 para crear contenido on-the-fly: tokens, NPCs, macros, journal entries, animaciones y más.
+Arquitectura que permite a un agente de IA (PI) interactuar nativamente con FoundryVTT V14 para crear contenido on-the-fly: tokens, NPCs, macros, journal entries, animaciones y más.
 
 ## ✨ Características
 
@@ -58,11 +58,11 @@ PI necesita un modelo LLM configurado. Ver `config/pi-settings.json.example` par
 
 | Componente | Versión requerida | Notas |
 |---|---|---|
-| FoundryVTT | **V13 build 351** | El install verifica la versión y aborta si no coincide |
+| FoundryVTT | **V14** | El install verifica la versión y aborta si no coincide |
 | D&D 5e System | **5.3.2** (D&D 2024) | Instalar desde Foundry's system installer |
 | World | cualquiera creado | El agente opera sobre el world activo |
 
-> ⚠️ **Importante**: El agente está pre-entrenado para Foundry V13 + dnd5e 5.3.2.
+> ⚠️ **Importante**: El agente está pre-entrenado para Foundry V14 + dnd5e 5.3.x.
 > Otras versiones pueden no funcionar. El install lo detecta y aborta (usa `--force` bajo tu responsabilidad).
 
 #### 3. Node.js (obligatorio)
@@ -102,7 +102,7 @@ Instala estos módulos en Foundry antes de la instalación para aprovechar todo 
      │  HTTP                                                    │
      ▼                                                          ▼
 ┌──────────┐                                            ┌──────────────┐
-│   RAG    │  Transformers.js + LanceDB                 │  FoundryVTT   │
+│   RAG    │  Transformers.js + LevelDB (cosine)       │  FoundryVTT   │
 │ Service  │  (embeddings locales, 384-dim)             │  Server       │
 │ :7402    │                                            │  :30001       │
 └──────────┘                                            └──────────────┘
@@ -117,7 +117,7 @@ pi-foundry/
 ├── relay/          # Bridge HTTP+WS (Node)
 ├── module/         # Módulo FoundryVTT (browser-side, 15 handlers)
 ├── extension/      # Extensión PI (4 tools)
-├── rag/            # RAG service (embeddings + LanceDB)
+├── rag/            # RAG service (embeddings + LevelDB)
 ├── skill/          # PI skill (foundry-encounter)
 ├── knowledge/      # Conocimiento pre-entrenado (12 archivos curados)
 ├── scripts/        # Instalación y mantenimiento

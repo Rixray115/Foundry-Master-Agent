@@ -15,7 +15,14 @@
   "type": "commonjs",
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
-    "@lancedb/lancedb": "^0.31.0",
     "classic-level": "^3.0.0"
+  },
+  "allowScripts": {
+    "onnxruntime-node@1.19.2": true,
+    "onnxruntime-node@1.24.3": true,
+    "sharp@0.33.5": true,
+    "sharp@0.34.5": true,
+    "classic-level@3.0.0": true,
+    "protobufjs@7.6.5": true
   }
 }
