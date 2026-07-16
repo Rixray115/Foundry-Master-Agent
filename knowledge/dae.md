@@ -109,3 +109,9 @@ Hooks.on("dae.setupComplete", () => { ... })    // Setup completo
 - Requiere: dnd5e system
 - Recomendado: MidiQOL (para macros @Call)
 - Recomendado: Times Up (para duración)
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** times-up, active-auras
+- **Depended on by:** midi-qol, active-auras, times-up, chris-premades
+

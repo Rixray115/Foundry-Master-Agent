@@ -70,3 +70,9 @@ const auraEffect = {
 - Requiere: DAE
 - Recomendado: MidiQOL
 - Recomendado: Times Up
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** dae
+- **Depended on by:** dae, midi-qol (cadena: midi-qol → dae → active-auras)
+

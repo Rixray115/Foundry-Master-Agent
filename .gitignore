@@ -52,3 +52,6 @@ pids-output.txt
 
 # Relay convenience launcher — hardcodes PI_BRIDGE_SECRET, must not be committed
 relay/start-relay.bat
+
+# graphify knowledge-graph artifacts (regenerable via `graphify .`)
+graphify-out/

@@ -47,3 +47,9 @@ Un "Fireball" de CPR incluye:
 - Requiere: Times Up
 - Recomendado: Sequencer + JB2A
 - Recomendado: Active Auras
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** midi-qol, dae, times-up
+- **Depended on by:** (ninguna directa)
+

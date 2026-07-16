@@ -6,8 +6,59 @@ import { readFile } from "node:fs/promises";
 import { chunkSource, getFoundryVersion } from "../lib/chunker.mjs";
 import { embedBatch, getEmbedDim } from "../lib/embed.mjs";
 import { insertChunks, dropTable, count } from "../lib/store.mjs";
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 
 const FOUNDRY_MJS = "C:/Program Files/Foundry Virtual Tabletop/resources/app/public/scripts/foundry.mjs";
+
+const KNOWLEDGE_DIR = join(import.meta.dirname, "..", "..", "knowledge");
+
+/**
+ * Indexa los .md curados de knowledge/ en el RAG (vía el endpoint /index-document del
+ * servidor RAG, que hace el embedding en el servidor). No requiere el modelo de embed local.
+ * Se omite README.md. Idempotente: cada corrida re-indexa los documentos actuales.
+ */
+export async function ingestKnowledge() {
+  console.log("[ingest] === Curated knowledge/*.md ===");
+  let files = [];
+  try {
+    files = (await readdir(KNOWLEDGE_DIR)).filter((f) => f.endsWith(".md") && f !== "README.md");
+  } catch {
+    console.log("[ingest] knowledge/ no encontrado, se omite");
+    return [];
+  }
+  const indexed = [];
+  for (const f of files) {
+    const text = await readFile(join(KNOWLEDGE_DIR, f), "utf8");
+    const module = f.replace(/\.md$/, "");
+    const title = (text.match(/^#\s+(.+)$/m)?.[1] || module).trim();
+    try {
+      const res = await fetch("http://127.0.0.1:7402/index-document", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          text,
+          metadata: {
+            module,
+            title,
+            kind: "knowledge",
+            symbol: module,
+            parent: "knowledge",
+            description: `Curated PI-Foundry knowledge: ${title}`,
+            line: 0,
+            source: "curated",
+            foundry_version: "14.364",
+          },
+        }),
+      });
+      if (res.ok) { indexed.push(module); console.log(`[ingest] indexed ${module}`); }
+      else console.log(`[ingest] FAILED ${module}: ${res.status}`);
+    } catch (e) {
+      console.log(`[ingest] ERROR ${module}: ${e.message}`);
+    }
+  }
+  return indexed;
+}
 
 /**
  * Ingesta la API core de Foundry.
@@ -130,7 +181,10 @@ export async function runIngest({ modules = ["sequencer", "tagger", "midi-qol"] 
     moduleChunks.push(...chunks);
   }
 
-  // 3. Combinar y procesar
+  // 3. Knowledge curado (knowledge/*.md) -> RAG
+  const knowledgeModules = await ingestKnowledge();
+
+  // 4. Combinar y procesar
   const allChunks = [...foundryChunks, ...moduleChunks];
   console.log(`[ingest] Total chunks a procesar: ${allChunks.length}`);
 
@@ -138,6 +192,7 @@ export async function runIngest({ modules = ["sequencer", "tagger", "midi-qol"] 
 
   const total = await count();
   console.log(`[ingest] Ingesta completa. Total documentos en LevelDB: ${total}`);
+  if (knowledgeModules.length) console.log(`[ingest] knowledge modules: ${knowledgeModules.join(", ")}`);
 
   // ⚠️ IMPORTANT: Restart the RAG server after re-ingest!
   // The in-memory vector cache (store.mjs) holds stale data until the process is killed.

@@ -8,6 +8,9 @@ Cada archivo documenta la API, hooks, patrones de uso y ejemplos de un módulo.
 | Archivo | Módulo | Versión | Función |
 |---|---|---|---|
 | [midi-qol.md](midi-qol.md) | MidiQOL | 13.0.61 | Automatización de combate D&D 5e |
+| [dnd5e-gotchas.md](dnd5e-gotchas.md) | dnd5e 5.3.3 | 5.3.3 | Schema gotchas: Set fields, skills, activities, save DC, MidiQOL |
+| [animation-wiring.md](animation-wiring.md) | dnd5e + Sequencer | 5.3.3 | Cómo enlazar animaciones JB2A al usar una habilidad (postUseActivity hook) |
+| [ability-use.md](ability-use.md) | dnd5e + MidiQOL | 5.3.3 | Disparar `use()` por script; límites de MidiQOL y tipos save |
 | [sequencer.md](sequencer.md) | Sequencer | 4.0.1 | Framework de animaciones |
 | [jb2a.md](jb2a.md) | JB2A DnD5e | 0.8.9 | Biblioteca de 2104 animaciones .webm |
 | [dae.md](dae.md) | DAE | 13.0.27 | Dynamic Active Effects |
@@ -27,6 +30,10 @@ El agente los consulta via `foundry_search_docs` para entender cómo usar cada m
 
 ## Versiones soportadas
 
-- FoundryVTT: V13 build 351
-- Sistema: dnd5e v5.3.2 (D&D 2024)
+- FoundryVTT: V14.364 (build 364)
+- Sistema: dnd5e v5.3.3 (D&D 2024)
 - Ver [module-inventory.md](module-inventory.md) para versiones detalladas
+
+> Nota: los archivos `dnd5e-gotchas.md`, `animation-wiring.md` y `ability-use.md` documentan
+> comportamientos verificados en dnd5e 5.3.3 + MidiQOL + Sequencer. Son la fuente de verdad para
+> los handlers `wire_animation` / `use_activity` y evitan re-descubrir gotchas en cada sesión.

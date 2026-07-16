@@ -192,3 +192,9 @@ new Sequence()
 - Ninguna (módulo standalone)
 - Integración con JB2A para assets
 - Integración con Automated Animations para auto-play
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** jb2a, autoanimations
+- **Depended on by:** autoanimations, handler wire-animation (animation-wiring)
+

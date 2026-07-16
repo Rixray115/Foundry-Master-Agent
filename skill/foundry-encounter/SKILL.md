@@ -54,6 +54,28 @@ Cuando `sync_modules` reporta módulos desconocidos:
 3. **Usa Plutonium para monsters**: Prefiere `plutonium_import` sobre `create_actors` para monsters. Plutonium importa stats, acciones, traits, items y sprites completos desde 5etools.
 4. **Reconoce tus límites**: Si no tienes conocimiento sobre un módulo, no inventes. Usa el Learning Protocol o pide ayuda al usuario.
 
+## Análisis de Impacto con graphify
+
+El repo mantiene un grafo de conocimiento (graphify) en `graphify-out/`:
+- `graph.json` — grafo navegable (251 nodos, 295 aristas, 100% EXTRACTED)
+- `GRAPH_REPORT.md` — informe con god nodes, conexiones sorpresa y preguntas sugeridas
+- `graph.html` — visualización interactiva
+
+**Regla — verifica el radio de impacto antes de editar un handler.** Antes de modificar
+cualquier archivo en `module/scripts/handlers/`, consulta el grafo para ver qué toca:
+- `graphify path "<Handler>" "<Otro módulo>"` — camino más corto entre dos conceptos
+- `graphify query "<pregunta>"` — traverse de la pregunta por el grafo (BFS/DFS)
+- `graphify explain "<nodo>"` — explicación en lenguaje claro de un nodo y sus vecinos
+
+El grafo se mantiene actualizado automáticamente por un `post-commit` hook (re-extrae los
+archivos de código cambiados en cada commit). Para cambios en documentos (`knowledge/*.md`),
+ejecuta `graphify --update` manualmente. No reinventes el grafo: es la fuente de verdad de la
+arquitectura del módulo y de las dependencias entre módulos.
+
+**Cadena de dependencias (módulos de combate-automatización), según `knowledge/module-inventory.md`:**
+`midi-qol → dae → (times-up, active-auras)`; `sequencer → (jb2a, autoanimations)`;
+`autoanimations → sequencer, midi-qol`; `chris-premades → midi-qol, dae, times-up`.
+
 ## Workflow: Crear un encuentro
 
 1. **Verifica conectividad** con `foundry_ping`.

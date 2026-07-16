@@ -273,6 +273,52 @@ export const SCHEMAS = {
     },
   },
 
+  // ─── Wire animation on ability use (postUseActivity hook) ───
+  wire_animation: {
+    type: "object",
+    properties: {
+      animations: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["itemName", "file"],
+          properties: {
+            itemName: { type: "string" },
+            file: { type: "string" },
+            tint: { type: "string" },
+            scale: { type: "number" },
+            persist: { type: "boolean" },
+            loc: { type: "string", enum: ["self", "target"] },
+            counterKey: { type: "string" },
+          },
+        },
+      },
+      persistentAuras: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["tokenId", "file"],
+          properties: {
+            tokenId: { type: "string" },
+            file: { type: "string" },
+            tint: { type: "string" },
+            scale: { type: "number" },
+            counterKey: { type: "string" },
+          },
+        },
+      },
+      defaultTargetTokenId: { type: "string" },
+    },
+  },
+
+  // ─── Verify animation wiring state ─────────────────────────
+  verify_wiring: {
+    type: "object",
+    properties: {
+      actorId: { type: "string" },
+    },
+  },
+
   // ─── Unsafe eval (escape hatch, deshabilitado por defecto) ───
   "unsafe.eval": {
     type: "object",

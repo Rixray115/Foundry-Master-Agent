@@ -135,3 +135,9 @@ new Sequence()
 
 - Ninguna (solo assets)
 - Se usa con: Sequencer, Automated Animations
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** (ninguna — es una librería de assets .webm)
+- **Depended on by:** sequencer, autoanimations, handler wire-animation (animation-wiring)
+

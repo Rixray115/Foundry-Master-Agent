@@ -176,3 +176,10 @@ if (workflow.item.system.actionType === "mwak") {
 - Requiere: dnd5e system
 - Recomendado: DAE, Times Up, Active Auras
 - Opcional: Sequencer, Automated Animations, Dice So Nice
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** dae (hard dependency)
+- **Depended on by:** autoanimations, chris-premades (y transitivamente active-auras y times-up vía dae)
+- Nota: también se integra de forma opcional con sequencer, automated-animations y dice-so-nice.
+

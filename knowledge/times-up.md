@@ -50,3 +50,9 @@ Times Up escucha los hooks de MidiQOL para:
 - Requiere: DAE
 - Recomendado: MidiQOL
 - Recomendado: Active Auras
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** dae
+- **Depended on by:** dae, midi-qol, chris-premades (cadena: midi-qol → dae → times-up)
+

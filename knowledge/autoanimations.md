@@ -59,3 +59,9 @@ item.flags.autoanimations = {
 - Requiere: Sequencer
 - Requiere: JB2A (o otra biblioteca de assets)
 - Recomendado: MidiQOL
+
+## Dependency chain (según knowledge/module-inventory.md)
+
+- **Depends on:** sequencer, midi-qol
+- **Depended on by:** sequencer
+
