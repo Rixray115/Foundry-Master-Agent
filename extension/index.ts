@@ -113,6 +113,7 @@ const COMMAND_NAMES = [
   "wire_animation",
   "verify_wiring",
   "delete_entities",
+  "unsafe.eval",
 ] as const;
 
 export default function foundryExtension(pi: ExtensionAPI) {
@@ -142,6 +143,7 @@ Comandos disponibles:
 - wire_animation: cablea animación JB2A en uso de habilidad/ítem (hook postUseActivity). args: { animations?: [{ itemName, file, tint?, scale?, persist?, loc? }], persistentAuras?: [{ tokenId, file }], defaultTargetTokenId? }
 - verify_wiring: verifica estado de cableado de animaciones de un actor. args: { actorId? }
 - delete_entities: elimina entidades por ID (cleanup/rollback). args: { actors?: string[], journals?: string[], macros?: string[], scenes?: string[], tokens?: [{ sceneId, id }] }. Solo borra IDs explícitos; reporta deleted/notFound.
+- unsafe.eval: ejecuta código JS arbitrario en el contexto del GM (requiere allowUnsafe=true en el módulo pi-bridge). args: { code: string }. SOLO para testing/desarrollo; peligroso.
 
 SIEMPRE consulta foundry_search_docs antes de emitir comandos para usar la API correcta de la versión de Foundry.`,
     promptSnippet: "Execute structured commands on FoundryVTT (create actors, place tokens, etc.)",
