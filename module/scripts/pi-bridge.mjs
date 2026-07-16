@@ -11,8 +11,29 @@
 import { registerSettings } from "./settings.mjs";
 import { BridgeClient } from "./bridge-client.mjs";
 import { CommandRouter } from "./command-router.mjs";
+import { wireAnimation } from "./handlers/wire-animation.mjs";
 
 const MODULE_ID = "pi-bridge";
+
+// Restaura la automatización persistida en los flags de los actores tras un reload.
+function restoreAutomation() {
+  try {
+    for (const actor of game.actors) {
+      const anims = actor.getFlag(MODULE_ID, "animations");
+      if (Array.isArray(anims) && anims.length) {
+        try { wireAnimation({ animations: anims }); } catch (e) { console.error("[pi-bridge] restore anim", e); }
+      }
+      const macroName = actor.getFlag(MODULE_ID, "kafkaAutomation");
+      if (typeof macroName === "string") {
+        const m = game.macros.getName(macroName);
+        if (m) { try { m.execute(); } catch (e) { console.error("[pi-bridge] restore macro", e); } }
+      }
+    }
+    console.log("[pi-bridge] automatización restaurada desde flags.");
+  } catch (e) {
+    console.error("[pi-bridge] restoreAutomation error:", e);
+  }
+}
 
 Hooks.once("init", () => {
   registerSettings();
@@ -56,6 +77,9 @@ Hooks.once("ready", async () => {
   globalThis.piBridge = { client, router, cfg };
 
   await client.connect();
+
+  // Restaurar automatización persistida (animaciones + hooks de Kafka) tras reload.
+  restoreAutomation();
 
   console.log("[pi-bridge] Módulo listo.", { relayUrl, allowUnsafe });
 });

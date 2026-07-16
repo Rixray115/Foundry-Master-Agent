@@ -31,7 +31,7 @@
  *
  * Returns: { ok, hookRegistered, animations, persistentAuras, counters }
  */
-export async function wireAnimation({ animations = [], persistentAuras = [], defaultTargetTokenId } = {}) {
+export async function wireAnimation({ animations = [], persistentAuras = [], defaultTargetTokenId, actorId } = {}) {
   if (!game.modules.get("sequencer")?.active) {
     throw new Error("Sequencer no está activo.");
   }
@@ -55,6 +55,12 @@ export async function wireAnimation({ animations = [], persistentAuras = [], def
       loc: a.loc === "self" ? "self" : "target",
       key,
     };
+  }
+
+  // Persistir el mapeo en el actor para restauración automática tras reload.
+  if (actorId) {
+    const actor = game.actors.get(actorId);
+    if (actor) await actor.setFlag("pi-bridge", "animations", animations);
   }
 
   // Registrar el hook UNA vez (idempotente).
