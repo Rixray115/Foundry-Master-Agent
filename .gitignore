@@ -29,3 +29,26 @@ Thumbs.db
 # Temp
 tmp/
 *.tmp
+
+# Scratch / debug / disposable test scripts (not part of the port)
+build-lirea.mjs
+fix-lirea-stats.mjs
+verify-lirea*.mjs
+read-lirea*.mjs
+check-pids.mjs
+check-pids.ps1
+list-macros.mjs
+create-verify-macro.mjs
+restart-foundry.ps1
+search-ldb.mjs
+test-*.mjs
+pids-output.txt
+
+# Orphan root package.json (references lmdb/msgpackr, not used by the port)
+/package.json
+
+# Generated / experimental data (incl. old LanceDB dumps)
+/data/
+
+# Relay convenience launcher — hardcodes PI_BRIDGE_SECRET, must not be committed
+relay/start-relay.bat
