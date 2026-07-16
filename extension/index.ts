@@ -20,10 +20,12 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 const RELAY_URL = process.env.PI_FOUNDRY_RELAY_URL ?? "http://127.0.0.1:7401";
 const RAG_URL = process.env.PI_FOUNDRY_RAG_URL ?? "http://127.0.0.1:7402";
-const SECRET_FILE = "/root/pi-foundry/.secret";
+// Cross-platform: look for .secret next to the project root (parent of extension/)
+const PROJECT_SECRET = join(import.meta.dirname, "..", ".secret");
 
 let cachedSecret: string | null = null;
 
@@ -33,12 +35,23 @@ async function getSecret(): Promise<string> {
     cachedSecret = process.env.PI_FOUNDRY_SECRET;
     return cachedSecret;
   }
+
   try {
-    cachedSecret = (await readFile(SECRET_FILE, "utf8")).trim();
+    cachedSecret = (await readFile(PROJECT_SECRET, "utf8")).trim();
     return cachedSecret;
   } catch {
+    // Linux-only fallback — NEVER on Windows (Node resolves /root/ to C:\root\)
+    if (process.platform === "linux") {
+      try {
+        cachedSecret = (await readFile("/root/pi-foundry/.secret", "utf8")).trim();
+        return cachedSecret;
+      } catch {}
+    }
+
+    const tried: string[] = [`PI_FOUNDRY_SECRET env var`, PROJECT_SECRET];
+    if (process.platform === "linux") tried.push("/root/pi-foundry/.secret");
     throw new Error(
-      `No se pudo cargar el secret. Set PI_FOUNDRY_SECRET o crea ${SECRET_FILE}.`
+      `No se pudo cargar el secret. Paths tried:\n  - ${tried.join("\n  - ")}`
     );
   }
 }
@@ -83,6 +96,7 @@ const COMMAND_NAMES = [
   "ping",
   "list_active_modules",
   "create_actors",
+  "update_actors",
   "place_tokens",
   "create_journal",
   "run_macro",
