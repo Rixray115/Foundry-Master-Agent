@@ -10,7 +10,7 @@ package-lock.json
 rag/data/
 
 # Audit logs
-relay/audit.jsonl
+relay/**/audit.jsonl
 *.log
 
 # Foundry user data (if accidentally placed here)
