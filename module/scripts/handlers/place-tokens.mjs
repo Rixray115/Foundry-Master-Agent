@@ -24,7 +24,7 @@ export async function placeTokens({ tokens }) {
   }
 
   // Construir datos de tokens
-  const gridSize = scene.grid.size || 100;
+  const gridSize = canvas.grid?.size ?? 100;
   const tokenData = tokens.map((t, i) => {
     const actor = game.actors.get(t.actorId);
     if (!actor) throw new Error(`Actor no encontrado: ${t.actorId}`);

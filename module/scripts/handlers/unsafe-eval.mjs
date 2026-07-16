@@ -22,8 +22,20 @@ export async function unsafeEval({ code }) {
 
   console.warn("[pi-bridge] Ejecutando unsafe.eval:", code.slice(0, 200));
 
-  // Function() crea una función en el scope global (no local).
-  // game, canvas, ui, Hooks, etc. son globales en Foundry.
+  // V14 removed several globals from the window scope. Callers must use
+  // the `foundry` namespace instead:
+  //   AudioHelper       → foundry.audio.AudioHelper
+  //   BaseGrid          → foundry.grid.GridlessGrid
+  //   HexagonalGrid     → foundry.grid.HexagonalGrid
+  //   SquareGrid        → foundry.grid.SquareGrid
+  //   Sound             → foundry.audio.Sound
+  //   DiceTerm          → foundry.dice.terms.DiceTerm
+  //   Die               → foundry.dice.terms.Die
+  //   FateDie           → foundry.dice.terms.FateDie
+  //   Coin              → foundry.dice.terms.Coin
+  //
+  // Function() creates a function in the global scope (not local).
+  // game, canvas, ui, Hooks, and foundry are passed explicitly.
   const fn = new Function("game", "canvas", "ui", "Hooks", "foundry", `return (async () => { ${code} })();`);
   const result = await fn(game, canvas, ui, Hooks, foundry);
 

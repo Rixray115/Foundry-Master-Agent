@@ -66,19 +66,22 @@ export async function plutoniumImport({ creatures }) {
         isTemp: false,
       });
 
-      // El resultado puede ser un actor, un objeto con actor, o un array
-      // Intentar múltiples formas de extraer el actor
+      // V14 Plutonium returns ImportSummary, not raw actors.
+      // ImportSummary.getPrimaryDocument() → the created Actor document.
       let actor = null;
-      if (importResult?.id) actor = importResult;
-      else if (importResult?.actor) actor = importResult.actor;
-      else if (importResult?.actorId) actor = game.actors.get(importResult.actorId);
-      else if (Array.isArray(importResult) && importResult.length > 0) actor = importResult[0];
+      if (typeof importResult?.getPrimaryDocument === "function") {
+        actor = importResult.getPrimaryDocument();
+      } else if (importResult?.id) {
+        // Fallback for V13-style raw actor returns
+        actor = importResult;
+      } else if (importResult?.actor) {
+        actor = importResult.actor;
+      }
 
-      // Si no pudimos extraer el actor del resultado, buscar por nombre
-      // (Plutonium crea el actor con el nombre del creature)
+      // Last resort: find by name in game.actors
       if (!actor) {
         const existing = game.actors.filter(a => a.name === name);
-        if (existing.length > 0) actor = existing[existing.length - 1]; // el más reciente
+        if (existing.length > 0) actor = existing[existing.length - 1];
       }
 
       const actorId = actor?.id ?? null;
