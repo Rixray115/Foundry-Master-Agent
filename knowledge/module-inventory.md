@@ -81,6 +81,11 @@
 | swarm-reanimated | Swarms Reanimated | 14.0.2 | Convierte tokens en enjambres animados |
 | advanced-macros | Advanced Macros | 2.4.0 | Mejoras de macros (argumentos, drag-drop) |
 | psfx | PSFX - Peri's Sound Effects | 0.15.0 | Librería de SFX .ogg (con Sequencer) |
+| lib-dfreds-ui-extender | Lib: DFreds UI Extender | 2.3.0 | Extiende la UI base (HUD, sidebar, controles de escena) |
+| lib-dfreds-migrations | Lib: DFreds Migrations | 1.0.3 | Runner de migraciones versionadas tipado |
+| plutonium-addon-automation | Plutonium Addon: Automation | 0.8.4 | Automatización Midi en imports de Plutonium |
+| aeris-core | Aeris Core | 13.0.23 | Framework cinemático (chat/UI animada, lenis) |
+| bg3-hud-core | BG3 Inspired HUD - Core | 0.4.3 | HUD estilo BG3 (requiere adapter dnd5e) |
 
 ## Módulo PI
 

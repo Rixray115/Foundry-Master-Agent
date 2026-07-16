@@ -32,6 +32,12 @@ const CURATED = {
   "swarm-reanimated": "14.0.2",
   "advanced-macros": "2.4.0",
   "psfx": "0.15.0",
+  // Ecosistema / hubs aprendidos (2026-07-16)
+  "lib-dfreds-ui-extender": "2.3.0",
+  "lib-dfreds-migrations": "1.0.3",
+  "plutonium-addon-automation": "0.8.4",
+  "aeris-core": "13.0.23",
+  "bg3-hud-core": "0.4.3",
 };
 
 export async function syncModules() {
