@@ -9,6 +9,7 @@
  *  - foundry_search_docs: búsqueda semántica sobre la API de Foundry + módulos
  *  - foundry_list_modules: lista los módulos activos en Foundry
  *  - foundry_ping: test de conectividad
+ *  - foundry_query_graph: query estructural sobre el knowledge graph (Graphify)
  *
  * Configuración:
  *  - PI_FOUNDRY_RELAY_URL (env) — default: http://127.0.0.1:7401
@@ -21,6 +22,11 @@ import { Type } from "typebox";
 import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { homedir } from "node:os";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 
 const RELAY_URL = process.env.PI_FOUNDRY_RELAY_URL ?? "http://127.0.0.1:7401";
 const RAG_URL = process.env.PI_FOUNDRY_RAG_URL ?? "http://127.0.0.1:7402";
@@ -108,6 +114,7 @@ const COMMAND_NAMES = [
   "analyze_module",
   "index_knowledge",
   "play_animation",
+  "set_animation_effect",
   "create_macro",
   "create_region",
   "wire_animation",
@@ -127,6 +134,7 @@ Comandos disponibles:
 - ping: test de conectividad
 - list_active_modules: lista módulos y sistemas activos
 - create_actors: crea actors (NPCs/personajes). args: { actors: [{ name, type: "character"|"npc", systemData?, img? }], folder? }
+- update_actors: actualiza campos de actores existentes (name, img, systemData, etc.)
 - place_tokens: coloca tokens en la escena. args: { tokens: [{ actorId, x?, y?, sceneId?, name? }] }
 - create_journal: crea entradas de diario. args: { entries: [{ name, content?, type?, folder? }] }
 - run_macro: ejecuta una macro existente. args: { name, args? }
@@ -138,6 +146,7 @@ Comandos disponibles:
 - analyze_module: extrae API surface de un módulo. args: { moduleId: string }. Devuelve globals, hooks, classes, methods, readme
 - index_knowledge: persiste conocimiento generado en el RAG. args: { module: string, content: string, title? }
 - play_animation: reproduce animación JB2A via Sequencer. args: { tokenId, file, scale?, tint?, persist?, belowTokens?, fadeIn?, fadeOut?, stretchToTokenId?, delay?, name? }
+- set_animation_effect: crea Active Effects que controlan animaciones Sequencer (auto-play on token create, toggle on/off). args: { actorId, effects: [{ name, animations: [{ file, scale?, tint?, ... }] }] }
 - create_macro: crea macros (script/chat) en el mundo. args: { macros: [{ name, type: "script"|"chat", command, img?, scope? }] }
 - create_region: crea regiones embebidas en una escena (V14). args: { regions: [{ name, shape: { type }, sceneId?, color? }] }
 - wire_animation: cablea animación JB2A en uso de habilidad/ítem (hook postUseActivity). args: { animations?: [{ itemName, file, tint?, scale?, persist?, loc? }], persistentAuras?: [{ tokenId, file }], defaultTargetTokenId? }
@@ -264,6 +273,77 @@ Parámetros:
         content: [{ type: "text", text: formatted || "No results found." }],
         details: { query: params.query, count: data.count, results: data.results },
       };
+    },
+  });
+
+  // ─── Tool: foundry_query_graph ───────────────────────────
+  pi.registerTool({
+    name: "foundry_query_graph",
+    label: "Foundry Query Graph",
+    description: `Structural query over the Foundry modules knowledge graph (Graphify).
+Returns nodes, edges, and communities from the code AST graph.
+
+Use this for STRUCTURAL questions like:
+- "What classes does MidiQOL have?"
+- "What calls rollDamage?"
+- "How does Sequencer relate to JB2A?"
+- "What are the god nodes?"
+
+For SEMANTIC questions ("how to create an actor"), use foundry_search_docs instead.
+
+Parameters:
+- query: natural language question
+- mode: "bfs" (broad traversal, default) or "dfs" (deep path tracing)
+- budget: max tokens in response (default 1500)`,
+    promptSnippet: "Query the Foundry modules knowledge graph (structural relationships, call graphs)",
+    promptGuidelines: [
+      "Use foundry_query_graph for STRUCTURAL questions (call graphs, class hierarchies, cross-module dependencies).",
+      "Use foundry_search_docs for SEMANTIC questions (how to use an API, documentation search).",
+      "Combine both: query the graph for structure, then search docs for usage patterns.",
+    ],
+    parameters: Type.Object({
+      query: Type.String({ description: "Natural language question about module structure" }),
+      mode: Type.Optional(
+        Type.Union(
+          [Type.Literal("bfs"), Type.Literal("dfs")],
+          { description: "Traversal mode: bfs (broad) or dfs (deep path tracing)" }
+        )
+      ),
+      budget: Type.Optional(Type.Number({ description: "Max tokens in response (default 1500)" })),
+    }),
+    async execute(_toolCallId, params, _signal, onUpdate) {
+      onUpdate?.({ content: [{ type: "text", text: `🔗 Graph: ${params.query}` }] });
+
+      const graphDir = process.env.PI_FOUNDRY_GRAPH_DIR || join(homedir(), ".pi", "graphify", "graphify-out");
+      const graphPath = join(graphDir, "graph.json");
+      const budget = params.budget || 1500;
+
+      // Build args array — execFile avoids shell injection
+      const args = [
+        "query", params.query,
+        "--graph", graphPath,
+        "--budget", String(budget),
+      ];
+      if (params.mode === "dfs") args.push("--dfs");
+
+      try {
+        const { stdout } = await execFileAsync("graphify", args, {
+          timeout: 30000,
+          maxBuffer: 1024 * 1024 * 10,
+          encoding: "utf-8",
+        });
+
+        return {
+          content: [{ type: "text", text: stdout || "No graph results found." }],
+          details: { query: params.query, mode: params.mode || "bfs", graphPath },
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return {
+          content: [{ type: "text", text: `Graph query error: ${msg}` }],
+          details: { query: params.query, error: msg },
+        };
+      }
     },
   });
 

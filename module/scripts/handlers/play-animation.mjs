@@ -10,9 +10,11 @@
  *   belowTokens?: boolean,  // debajo de tokens (default: true)
  *   fadeIn?: number,        // fade in ms (default: 0)
  *   fadeOut?: number,       // fade out ms (default: 0)
+ *   attachTo?: boolean,     // seguir al token si se mueve (default: false)
  *   stretchToTokenId?: string, // estirar hacia otro token
  *   delay?: number,         // delay antes de empezar ms (default: 0)
  *   name?: string,          // nombre del efecto (para referenciar)
+ *   stop?: boolean,         // detener todos los efectos (o por name si se da)
  * }
  *
  * Returns: { ok: boolean, tokenId, file }
@@ -29,15 +31,33 @@ export async function playAnimation({
   stretchToTokenId,
   delay = 0,
   name,
+  attachTo = false,
+  stop = false,
 }) {
   if (!game.modules.get("sequencer")?.active) {
     throw new Error("Sequencer no está activo.");
   }
 
+  // Mode: stop existing effects
+  if (stop) {
+    if (name) {
+      await Sequencer.EffectManager.endEffects({ name });
+      return { ok: true, stopped: true, name };
+    }
+    await Sequencer.EffectManager.endAllEffects();
+    return { ok: true, stopped: true, all: true };
+  }
+
   const token = canvas.tokens.get(tokenId);
   if (!token) throw new Error(`Token "${tokenId}" no encontrado.`);
 
-  let seq = new Sequence().effect().file(file).atLocation(token);
+  let seq = new Sequence().effect().file(file);
+
+  if (attachTo) {
+    seq = seq.attachTo(token);
+  } else {
+    seq = seq.atLocation(token);
+  }
 
   if (stretchToTokenId) {
     const target = canvas.tokens.get(stretchToTokenId);
@@ -51,7 +71,9 @@ export async function playAnimation({
   if (fadeIn) seq = seq.fadeIn(fadeIn);
   if (fadeOut) seq = seq.fadeOut(fadeOut);
   if (belowTokens) seq = seq.belowTokens();
-  if (persist) seq = seq.persist(true, { name: name ?? `anim-${tokenId}-${Date.now()}` });
+  const effectName = name ?? `anim-${tokenId}-${Date.now()}`;
+  if (name) seq = seq.name(effectName);
+  if (persist) seq = seq.persist(true);
 
   await seq.play();
 

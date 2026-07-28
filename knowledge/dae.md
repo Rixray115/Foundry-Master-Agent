@@ -1,4 +1,4 @@
-# DAE v14.0.12 — Dynamic Active Effects
+# DAE v13.0.27 — Dynamic Active Effects
 
 ## API Global
 

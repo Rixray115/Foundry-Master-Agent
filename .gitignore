@@ -56,5 +56,10 @@ pids-output.txt
 # Relay convenience launcher — hardcodes PI_BRIDGE_SECRET, must not be committed
 relay/start-relay.bat
 
-# graphify knowledge-graph artifacts (regenerable via `graphify .`)
+# Graphify knowledge-graph artifacts
 graphify-out/
+graphrag/graphify-out/
+knowledge/graphify-out/
+
+# Symlinks to Foundry modules (local only)
+graphrag/modules-code/

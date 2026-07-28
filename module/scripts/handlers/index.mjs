@@ -22,6 +22,7 @@ import { syncModules } from "./sync-modules.mjs";
 import { analyzeModule } from "./analyze-module.mjs";
 import { indexKnowledge } from "./index-knowledge.mjs";
 import { playAnimation } from "./play-animation.mjs";
+import { setAnimationEffect } from "./set-animation-effect.mjs";
 import { wireAnimation } from "./wire-animation.mjs";
 import { verifyWiring } from "./verify-wiring.mjs";
 import { deleteEntities } from "./delete-entities.mjs";
@@ -44,6 +45,7 @@ export const handlers = {
   analyze_module: analyzeModule,
   index_knowledge: indexKnowledge,
   play_animation: playAnimation,
+  set_animation_effect: setAnimationEffect,
   wire_animation: wireAnimation,
   verify_wiring: verifyWiring,
   delete_entities: deleteEntities,

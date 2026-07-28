@@ -1,4 +1,4 @@
-# MidiQOL v14.0.11 — Automatización de Combate D&D 5e
+# MidiQOL v13.0.61 — Automatización de Combate D&D 5e
 
 ## API Global
 
