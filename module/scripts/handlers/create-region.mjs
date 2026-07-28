@@ -1,6 +1,6 @@
 /**
  * Crear Regiones (V14) embebidas en una escena.
- * V14 introdujo Region como documento embebido en Scene (no existe en V13).
+ * V14 introdujo Region como documento embebido en Scene.
  * Una región requiere al menos un shape; el shape usa el modelo de datos de V14:
  *   - rectangle: { type: "rectangle", x, y, width, height }
  *   - circle:    { type: "circle", x, y, radius }

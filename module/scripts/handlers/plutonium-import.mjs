@@ -39,7 +39,7 @@ export async function plutoniumImport({ creatures }) {
     try {
       // Cargar datos del bestiario desde los archivos bundled de Plutonium
       const fileName = `bestiary-${source.toLowerCase()}.json`;
-      // En Foundry V13, los archivos de módulos se sirven en /modules/<id>/...
+      // Los archivos de módulos se sirven en /modules/<id>/...
       const url = `${window.location.origin}/modules/plutonium/data/bestiary/${fileName}`;
 
       console.log(`[pi-bridge] Cargando bestiary: ${url}`);
@@ -66,14 +66,10 @@ export async function plutoniumImport({ creatures }) {
         isTemp: false,
       });
 
-      // V14 Plutonium returns ImportSummary, not raw actors.
-      // ImportSummary.getPrimaryDocument() → the created Actor document.
+      // Plutonium returns ImportSummary; getPrimaryDocument() → the created Actor document.
       let actor = null;
       if (typeof importResult?.getPrimaryDocument === "function") {
         actor = importResult.getPrimaryDocument();
-      } else if (importResult?.id) {
-        // Fallback for V13-style raw actor returns
-        actor = importResult;
       } else if (importResult?.actor) {
         actor = importResult.actor;
       }

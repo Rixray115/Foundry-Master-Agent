@@ -83,7 +83,7 @@ Pre-trained knowledge about Foundry modules:
 
 ### 6. PI Skill (`skill/`)
 
-The `foundry-encounter` skill instructs the agent:
+The `foundry` skill instructs the agent:
 
 - **Boot Protocol**: Sync modules, learn unknown ones, build mental model
 - **Learning Protocol**: Analyze → synthesize → index knowledge for new modules

@@ -1,4 +1,4 @@
-# Sequencer v4.0.1 — Framework de Animaciones
+# Sequencer v4.2.3 — Framework de Animaciones
 
 ## API Global
 

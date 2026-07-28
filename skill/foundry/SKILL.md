@@ -1,9 +1,9 @@
 ---
-name: foundry-encounter
-description: Create D&D 5e encounters on FoundryVTT — NPCs, monsters, tokens, and journal entries. Use when the user asks to create creatures, place tokens, build encounters, or interact with the FoundryVTT virtual tabletop.
+name: foundry
+description: Operate FoundryVTT via the PI agent bridge — automate combat, create actors/tokens/journals/macros, import monsters, manage scenes, wire animations, query module APIs, and run encounters. Use for any FoundryVTT interaction: world-building, combat automation, encounter design, animation wiring, module management, or testing.
 ---
 
-# Foundry Encounter Skill
+# Foundry Skill
 
 ## Boot Protocol (ejecutar al inicio de cada sesión)
 
@@ -12,7 +12,35 @@ description: Create D&D 5e encounters on FoundryVTT — NPCs, monsters, tokens, 
 3. **Sincroniza conocimiento**: Llama `foundry_execute` con comando `sync_modules`.
    - Si hay módulos **desconocidos**, ejecuta el Learning Protocol para cada uno.
    - Si hay **versiones distintas**, nota la diferencia y ten cuidado al usar APIs.
+   - **⚠️ HotReload caveat:** Si acabas de modificar `module/scripts/handlers/*.mjs`, los cambios pueden no reflejarse hasta que el GM recargue la página de Foundry (F5). El módulo pi-bridge tiene `hotReload` pero no siempre captura cambios en handlers importados estáticamente. Si un comando devuelve resultados inesperados o vacíos, pide al usuario que recargue Foundry.
 4. **Construye mapa mental**: Para cada módulo activo, busca `foundry_search_docs("<module> API")` para entender su API.
+
+   **⚠️ RAG scope:** El RAG contiene SOLO 15 documentos curados (`knowledge/*.md`), NO el fuente completo de Foundry ni de módulos de terceros. Si `foundry_search_docs` no encuentra una API específica, consulta el archivo `.md` correspondiente en `knowledge/` (ej. `knowledge/sequencer.md`) o usa `unsafe.eval` (si allowUnsafe está habilitado) para inspeccionar la API directamente.
+
+## Self-Healing Protocol
+
+Cuando algo no funciona como esperas, ejecuta esta checklist:
+
+1. **¿El comando devuelve resultados vacíos sin error?**
+   - Posible causa: datos de sistema mal formados. `create_actors` con `systemData` complejo puede fallar silenciosamente si la estructura no coincide con el schema de dnd5e. Revisa `knowledge/dnd5e-gotchas.md` para campos problemáticos (Set fields, skills, activities, save DC).
+   - Solución: prueba primero con `systemData: {}` vacío, luego añade campos de a uno.
+
+2. **¿El comando se comporta distinto a lo esperado (ej. sync_modules reporta "known" para módulos que no debería)?**
+   - Causa: el handler `.mjs` se modificó en disco pero Foundry aún tiene la versión anterior en caché.
+   - Solución: pedir al usuario que recargue Foundry (F5 en el navegador del GM).
+
+3. **¿`plutonium_import` falla o no encuentra un monster?**
+   - Verifica que el nombre coincida exactamente con el de 5etools (case-sensitive).
+   - Prueba con diferentes sources: `"MM"` (2014), `"XMM"` (2024), `"VGM"`, `"MPMM"`, `"ToB1-2023"`.
+
+4. **¿`foundry_search_docs` no encuentra una API?**
+   - El RAG solo indexa 15 documentos curados. Si buscas algo muy específico (ej. nombre exacto de método de Sequencer), lee el archivo relevante en `knowledge/` directamente, o usa `unsafe.eval` (si permitido).
+
+5. **¿Los resultados no coinciden con modules.json en disco?**
+   - El módulo pi-bridge está cacheado por el navegador. Recarga Foundry (F5).
+
+6. **¿`unsafe.eval` devuelve null?**
+   - `allowUnsafe` no está habilitado. Es normal — por seguridad está deshabilitado por defecto. No depende de esta tool.
 
 ## Learning Protocol (para módulos desconocidos)
 
@@ -53,11 +81,13 @@ Cuando `sync_modules` reporta módulos desconocidos:
 2. **Verifica conectividad**: Si `foundry_ping` falla, pide al usuario que abra Foundry en el navegador. No puedes operar sin navegador conectado.
 3. **Usa Plutonium para monsters**: Prefiere `plutonium_import` sobre `create_actors` para monsters. Plutonium importa stats, acciones, traits, items y sprites completos desde 5etools.
 4. **Reconoce tus límites**: Si no tienes conocimiento sobre un módulo, no inventes. Usa el Learning Protocol o pide ayuda al usuario.
+5. **Recarga Foundry tras modificar handlers**: Si modificas `module/scripts/handlers/*.mjs`, pide al usuario recargar Foundry (F5). hotReload no siempre captura cambios en imports estáticos.
+6. **systemData complejo puede fallar silenciosamente**: `create_actors` con datos de sistema dnd5e puede devolver `actorIds: []` sin error si algún campo es inválido. Empieza con `systemData: {}` y añade campos de a uno. Ver `knowledge/dnd5e-gotchas.md` para el schema correcto.
 
 ## Análisis de Impacto con graphify
 
 El repo mantiene un grafo de conocimiento (graphify) en `graphify-out/`:
-- `graph.json` — grafo navegable (251 nodos, 295 aristas, 100% EXTRACTED)
+- `graph.json` — grafo navegable (271 nodos, 303 aristas, 50 comunidades)
 - `GRAPH_REPORT.md` — informe con god nodes, conexiones sorpresa y preguntas sugeridas
 - `graph.html` — visualización interactiva
 
@@ -69,14 +99,14 @@ cualquier archivo en `module/scripts/handlers/`, consulta el grafo para ver qué
 
 El grafo se mantiene actualizado automáticamente por un `post-commit` hook (re-extrae los
 archivos de código cambiados en cada commit). Para cambios en documentos (`knowledge/*.md`),
-ejecuta `graphify --update` manualmente. No reinventes el grafo: es la fuente de verdad de la
+ejecuta `graphify --update --code-only` manualmente. No reinventes el grafo: es la fuente de verdad de la
 arquitectura del módulo y de las dependencias entre módulos.
 
 **Cadena de dependencias (módulos de combate-automatización), según `knowledge/module-inventory.md`:**
 `midi-qol → dae → (times-up, active-auras)`; `sequencer → (jb2a, autoanimations)`;
 `autoanimations → sequencer, midi-qol`; `chris-premades → midi-qol, dae, times-up`.
 
-## Workflow: Crear un encuentro
+## Workflow: Crear un encuentro (ejemplo)
 
 1. **Verifica conectividad** con `foundry_ping`.
 2. **Importa monsters** con `foundry_execute` comando `plutonium_import`:
@@ -98,7 +128,8 @@ arquitectura del módulo y de las dependencias entre módulos.
 |---|---|
 | `ping` | Test de conectividad |
 | `list_active_modules` | Lista módulos activos |
-| `create_actors` | Crea actors manualmente |
+| `create_actors` | Crea actors manualmente. ⚠️ systemData complejo puede fallar silenciosamente — empezar vacío |
+| `update_actors` | Actualiza campos de actores existentes (name, img, systemData, etc.) |
 | `place_tokens` | Coloca tokens en escena |
 | `create_journal` | Crea entradas de diario |
 | `run_macro` | Ejecuta macro existente |
@@ -109,19 +140,27 @@ arquitectura del módulo y de las dependencias entre módulos.
 | `sync_modules` | Sincroniza conocimiento de módulos |
 | `analyze_module` | Analiza API de un módulo |
 | `index_knowledge` | Persiste conocimiento en RAG |
+| `play_animation` | Reproduce animación JB2A via Sequencer |
+| `wire_animation` | Cablea animación a uso de habilidad |
+| `verify_wiring` | Verifica cableado de animaciones |
+| `create_macro` | Crea macros en el mundo |
+| `create_region` | Crea regiones en la escena (V14) |
+| `delete_entities` | Elimina entidades por ID |
 
-## Módulos Soportados (conocimiento curado)
+## Módulos Soportados (conocimiento curado) — V14 only
 
-- **MidiQOL**: Automatización de combate (hooks, workflow, macros)
-- **Sequencer**: Framework de animaciones (API encadenable)
-- **JB2A**: 2104 animaciones .webm (spells, weapons, conditions)
-- **DAE**: Dynamic Active Effects (buffs/debuffs)
-- **Active Auras**: Efectos por proximidad
-- **Times Up**: Duración de efectos
-- **Plutonium**: Importación desde 5etools
-- **Tagger**: Etiquetado de tokens
-- **Automated Animations**: Auto-play de animaciones
-- **Chris's Premades**: Items pre-automatizados
+| Módulo | Versión | Función |
+|---|---|---|
+| **MidiQOL** | 14.0.11 | Automatización de combate (hooks, workflow, macros) |
+| **Sequencer** | 4.2.3 | Framework de animaciones (API encadenable) |
+| **JB2A** | 0.9.1 | 2104 animaciones .webm (spells, weapons, conditions) |
+| **DAE** | 14.0.12 | Dynamic Active Effects (buffs/debuffs) |
+| **Active Auras** | 0.12.7 | Efectos por proximidad |
+| **Times Up** | 13.1.9 | Duración de efectos |
+| **Plutonium** | 2.16.2.v14 | Importación desde 5etools |
+| **Tagger** | 1.6.0 | Etiquetado de tokens |
+| **Automated Animations** | 7.0.16 | Auto-play de animaciones |
+| **Chris's Premades** | 1.5.27 | Items pre-automatizados |
 
 ## Sources de Plutonium
 

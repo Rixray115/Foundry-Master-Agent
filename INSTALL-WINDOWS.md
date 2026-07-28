@@ -138,7 +138,7 @@ New-Item -ItemType SymbolicLink -Path "$piExt\pi-foundry" -Target "$HOME\pi-foun
 ```powershell
 $piSkills = "$HOME\.pi\agent\skills"
 if (!(Test-Path $piSkills)) { New-Item -ItemType Directory -Path $piSkills }
-New-Item -ItemType SymbolicLink -Path "$piSkills\foundry-encounter" -Target "$HOME\pi-foundry\skill\foundry-encounter"
+New-Item -ItemType SymbolicLink -Path "$piSkills\foundry" -Target "$HOME\pi-foundry\skill\foundry"
 ```
 
 ### Paso 7: Configurar el secret en Foundry

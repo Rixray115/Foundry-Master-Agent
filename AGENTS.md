@@ -9,7 +9,7 @@ Multi-component D&D 5e automation extension for FoundryVTT. Four parts:
 Runtime flow (verified): Extension `sendCommand()` → Relay (`:7401`) → Module `BridgeClient` → `CommandRouter` → `handlers[command]` → FoundryVTT. Search: `foundryExtension()` → RAG (`:7402`).
 
 ## Knowledge graph (graphify) — authority for impact analysis
-Lives in `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, `graph.html`). It maps code dependencies AND the cross-process runtime flow. `knowledge/architecture-graph.md` is the curated source of truth for that flow and the module dependency chain.
+Lives in `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, `graph.html`). It maps code dependencies AND the cross-process runtime flow. `knowledge/module-inventory.md` is the curated source of truth for the module dependency chain.
 
 ### Before editing code
 If you touch anything under `extension/`, `relay/`, `module/`, or `rag/`, check blast radius first:
@@ -41,3 +41,24 @@ Notes:
 - `graphify label` names communities (otherwise they show as `Community N`); `cluster-only` regenerates `GRAPH_REPORT.md`/`graph.html` from an existing graph with no LLM.
 - If the graph and reality disagree, trust the source code: fix the doc (`knowledge/*.md` / `ARCHITECTURE.md`), then re-run `--update`.
 - `graphify-out/` is gitignored — the graph is a regenerated artifact, not committed.
+
+
+## Current State (updated 2026-07-26)
+
+- **RAG**: 29 documents indexed (15 curated + 14 agent-analyzed)
+- **Known modules**: 18 with zero version mismatches
+- **Graphify**: 285 nodes, 361 edges, 53 communities
+- **Bridge commands**: 21/21 verified working
+
+### Automation modules with RAG knowledge
+midi-qol, sequencer, JB2A, dae, ActiveAuras, times-up, plutonium, tagger, autoanimations,
+CAT, plutonium-addon-automation, dfreds-convenient-effects, dorman-lakelys-crit-fumble-tables,
+_chatcommands, audio-tagger, monks-tokenbar, swarm-reanimated, advanced-macros
+
+### Services
+- Relay: http://127.0.0.1:7401 (start via `relay/start-relay.bat`)
+- RAG: http://127.0.0.1:7402 (start via `node rag/server.mjs`)
+
+### Key commands
+- `pi --cwd ~/pi-foundry` to start in project context
+- `graphify query "<question>"` from project root for architecture questions

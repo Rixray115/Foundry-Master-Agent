@@ -15,7 +15,7 @@ try {
       "dae",
       "JB2A_DnD5e",
       "ActiveAuras",
-      "automated-animations-for-all",
+      "autoanimations",
       "chris-premades"
     ],
   });

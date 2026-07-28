@@ -1,5 +1,5 @@
 /**
- * Ingesta de Foundry V13 — parsea foundry.mjs (JSDoc) → chunks → embed → store
+ * Ingesta de Foundry — parsea foundry.mjs (JSDoc) → chunks → embed → store
  */
 
 import { readFile } from "node:fs/promises";
@@ -9,7 +9,9 @@ import { insertChunks, dropTable, count } from "../lib/store.mjs";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 
-const FOUNDRY_MJS = "C:/Program Files/Foundry Virtual Tabletop/resources/app/public/scripts/foundry.mjs";
+// Path to Foundry's core API source. Adjust if your install is in a non-default location.
+const FOUNDRY_MJS = process.env.FOUNDRY_MJS_PATH
+  ?? "C:/Program Files/Foundry Virtual Tabletop/resources/app/public/scripts/foundry.mjs";
 
 const KNOWLEDGE_DIR = join(import.meta.dirname, "..", "..", "knowledge");
 

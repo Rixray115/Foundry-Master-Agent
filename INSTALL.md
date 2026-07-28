@@ -117,7 +117,7 @@ ln -s $(pwd)/extension ~/.pi/agent/extensions/pi-foundry
 #### 5. Instalar skill en PI
 
 ```bash
-ln -s $(pwd)/skill/foundry-encounter ~/.pi/agent/skills/foundry-encounter
+ln -s $(pwd)/skill/foundry ~/.pi/agent/skills/foundry
 ```
 
 #### 6. Instalar servicios systemd

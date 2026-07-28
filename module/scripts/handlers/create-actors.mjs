@@ -35,7 +35,7 @@ export async function createActors({ actors, folder: folderName }) {
     return data;
   });
 
-  // Crear actors (V13 API)
+  // Crear actors (V14 API)
   const created = await Actor.createDocuments(createData);
 
   return {

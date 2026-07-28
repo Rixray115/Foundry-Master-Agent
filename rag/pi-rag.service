@@ -4,11 +4,11 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/root/pi-foundry/rag
+WorkingDirectory=/home/rixray/pi-foundry/rag
 Environment=RAG_PORT=7402
 Environment=RAG_EMBED_PROVIDER=local
-Environment=RAG_LANCEDB_PATH=/root/pi-foundry/rag/data/lancedb
-ExecStart=/root/.nvm/versions/node/v24.14.1/bin/node server.mjs
+Environment=RAG_LANCEDB_PATH=/home/rixray/pi-foundry/rag/data/lancedb
+ExecStart=/usr/bin/node server.mjs
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -20,7 +20,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/root/pi-foundry
+ReadWritePaths=/home/rixray/pi-foundry
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 LimitNOFILE=128
 

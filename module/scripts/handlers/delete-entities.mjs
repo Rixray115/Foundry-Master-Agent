@@ -10,6 +10,7 @@
  *   tokens?:  Array<{ sceneId: string, id: string }>,
  *   macros?:  string[],
  *   scenes?:  string[],
+ *   regions?: Array<{ sceneId: string, id: string }>,
  * }
  *
  * Returns: { deleted: {...}, notFound: {...} }
@@ -20,9 +21,10 @@ export async function deleteEntities({
   tokens = [],
   macros = [],
   scenes = [],
+  regions = [],
 }) {
-  const deleted = { actors: [], journals: [], tokens: [], macros: [], scenes: [] };
-  const notFound = { actors: [], journals: [], tokens: [], macros: [], scenes: [] };
+  const deleted = { actors: [], journals: [], tokens: [], macros: [], scenes: [], regions: [] };
+  const notFound = { actors: [], journals: [], tokens: [], macros: [], scenes: [], regions: [] };
 
   for (const id of actors) {
     const a = game.actors.get(id);
@@ -50,6 +52,15 @@ export async function deleteEntities({
   for (const id of scenes) {
     const s = game.scenes.get(id);
     if (s) { await s.delete(); deleted.scenes.push(id); } else notFound.scenes.push(id);
+  }
+
+  for (const r of regions) {
+    const scene = game.scenes.get(r.sceneId);
+    const region = scene?.regions.get(r.id);
+    if (region) {
+      await scene.deleteEmbeddedDocuments("Region", [r.id]);
+      deleted.regions.push(r.id);
+    } else notFound.regions.push(r.id);
   }
 
   return { deleted, notFound };

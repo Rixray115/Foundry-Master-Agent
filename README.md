@@ -118,7 +118,7 @@ pi-foundry/
 ├── module/         # Módulo FoundryVTT (browser-side, 15 handlers)
 ├── extension/      # Extensión PI (4 tools)
 ├── rag/            # RAG service (embeddings + LevelDB)
-├── skill/          # PI skill (foundry-encounter)
+├── skill/          # PI skill (foundry)
 ├── knowledge/      # Conocimiento pre-entrenado (12 archivos curados)
 ├── scripts/        # Instalación y mantenimiento
 ├── config/         # Plantillas de configuración

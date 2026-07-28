@@ -26,6 +26,9 @@ Thumbs.db
 *.swp
 *~
 
+# Environment
+.env
+
 # Temp
 tmp/
 *.tmp

@@ -1,4 +1,4 @@
-# Plutonium v2.15.0 — Importación desde 5etools
+# Plutonium v2.16.2.v14 — Importación desde 5etools
 
 ## API Global
 
@@ -104,7 +104,7 @@ game.plutonium.hooks.on("eventName", callback);
 game.plutonium.hooks.off("eventName", callback);
 ```
 
-## Addon: Plutonium Automation (v0.8.2)
+## Addon: Plutonium Automation (v0.8.4)
 
 El addon `plutonium-addon-automation` añade:
 - DAE macros automáticas a items importados
