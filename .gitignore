@@ -9,6 +9,14 @@ package-lock.json
 # LanceDB binary data
 rag/data/
 
+# Graphify output (regenerated via build-graph.sh)
+graphrag/graphify-out/
+graphify-out/
+knowledge/graphify-out/
+
+# Symlinks to Foundry modules (local only)
+graphrag/modules-code/
+
 # Audit logs
 relay/audit.jsonl
 *.log

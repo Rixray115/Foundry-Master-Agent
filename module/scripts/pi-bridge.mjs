@@ -58,4 +58,104 @@ Hooks.once("ready", async () => {
   await client.connect();
 
   console.log("[pi-bridge] Módulo listo.", { relayUrl, allowUnsafe });
+
+  // ─── Hooks de animación via Active Effects ─────────────
+  // Cuando un effect con flags.pi-bridge.animation se crea/habilita,
+  // reproducir la animación. Cuando se deshabilita/elimina, detenerla.
+
+  function playEffectAnimation(effect, token) {
+    const anims = effect.flags?.["pi-bridge"]?.animations;
+    if (!anims || !Array.isArray(anims)) return;
+
+    for (const anim of anims) {
+      let seq = new Sequence().effect().file(anim.file);
+      if (anim.attachTo) {
+        seq = seq.attachTo(token);
+      } else {
+        seq = seq.atLocation(token);
+      }
+      if (anim.scale && anim.scale !== 1) seq = seq.scale(anim.scale);
+      if (anim.tint) seq = seq.tint(anim.tint);
+      if (anim.belowTokens) seq = seq.belowTokens();
+      if (anim.name) seq = seq.name(anim.name);
+      if (anim.persist) seq = seq.persist(true);
+      seq.play();
+    }
+  }
+
+  function stopEffectAnimation(effect) {
+    const anims = effect.flags?.["pi-bridge"]?.animations;
+    if (!anims || !Array.isArray(anims)) return;
+
+    for (const anim of anims) {
+      try {
+        Sequencer.EffectManager.endEffects({ name: anim.name });
+      } catch (e1) {
+        try {
+          Sequencer.EffectManager.endEffect(anim.name);
+        } catch (e2) {
+          console.warn("[pi-bridge] Error deteniendo animación:", anim.name, e2);
+        }
+      }
+    }
+  }
+
+  function getActorTokens(actor) {
+    return canvas.tokens.placeables.filter(t => t.actor?.id === actor.id);
+  }
+
+  function hasPiBridgeAnimation(effect) {
+    return !!effect.flags?.["pi-bridge"]?.animations;
+  }
+
+  // Hook: Active Effect creado
+  Hooks.on("createActiveEffect", (effect, _options, _userId) => {
+    if (!hasPiBridgeAnimation(effect)) return;
+    if (effect.disabled) return;
+    const tokens = getActorTokens(effect.parent);
+    for (const token of tokens) {
+      playEffectAnimation(effect, token);
+    }
+  });
+
+  // Hook: Active Effect actualizado (toggle disabled)
+  Hooks.on("updateActiveEffect", (effect, changes, _options, _userId) => {
+    if (!hasPiBridgeAnimation(effect)) return;
+
+    const disabledChanged = changes.disabled !== undefined;
+    if (!disabledChanged) return;
+
+    if (effect.disabled) {
+      stopEffectAnimation(effect);
+    } else {
+      const tokens = getActorTokens(effect.parent);
+      for (const token of tokens) {
+        playEffectAnimation(effect, token);
+      }
+    }
+  });
+
+  // Hook: Active Effect eliminado
+  Hooks.on("deleteActiveEffect", (effect, _options, _userId) => {
+    if (!hasPiBridgeAnimation(effect)) return;
+    stopEffectAnimation(effect);
+  });
+
+  // Hook: Token creado → reproducir animaciones de effects activos del actor
+  Hooks.on("createToken", (tokenDoc, _options, _userId) => {
+    if (!tokenDoc.actor) return;
+    const activeEffects = tokenDoc.actor.effects.filter(
+      e => !e.disabled && hasPiBridgeAnimation(e)
+    );
+    // El token del canvas puede no estar listo inmediatamente
+    setTimeout(() => {
+      const token = canvas.tokens.get(tokenDoc.id);
+      if (!token) return;
+      for (const effect of activeEffects) {
+        playEffectAnimation(effect, token);
+      }
+    }, 500);
+  });
+
+  console.log("[pi-bridge] Hooks de animación registrados.");
 });

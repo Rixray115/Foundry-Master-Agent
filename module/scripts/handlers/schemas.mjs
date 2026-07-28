@@ -190,7 +190,6 @@ export const SCHEMAS = {
   // ─── Play animation via Sequencer ────────────────────────
   play_animation: {
     type: "object",
-    required: ["tokenId", "file"],
     properties: {
       tokenId: { type: "string" },
       file: { type: "string" },
@@ -200,9 +199,46 @@ export const SCHEMAS = {
       belowTokens: { type: "boolean" },
       fadeIn: { type: "number" },
       fadeOut: { type: "number" },
+      attachTo: { type: "boolean" },
       stretchToTokenId: { type: "string" },
       delay: { type: "number" },
       name: { type: "string" },
+      stop: { type: "boolean" },
+    },
+  },
+
+  // ─── Set animation as Active Effect ────────────────────
+  set_animation_effect: {
+    type: "object",
+    required: ["actorId", "name"],
+    properties: {
+      actorId: { type: "string" },
+      name: { type: "string" },
+      icon: { type: "string" },
+      disabled: { type: "boolean" },
+      // Array of animations
+      animations: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["file"],
+          properties: {
+            file: { type: "string" },
+            tint: { type: "string" },
+            scale: { type: "number" },
+            persist: { type: "boolean" },
+            attachTo: { type: "boolean" },
+            belowTokens: { type: "boolean" },
+          },
+        },
+      },
+      // Single-animation shorthand
+      file: { type: "string" },
+      tint: { type: "string" },
+      scale: { type: "number" },
+      persist: { type: "boolean" },
+      attachTo: { type: "boolean" },
+      belowTokens: { type: "boolean" },
     },
   },
 

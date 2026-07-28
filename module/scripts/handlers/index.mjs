@@ -19,6 +19,7 @@ import { syncModules } from "./sync-modules.mjs";
 import { analyzeModule } from "./analyze-module.mjs";
 import { indexKnowledge } from "./index-knowledge.mjs";
 import { playAnimation } from "./play-animation.mjs";
+import { setAnimationEffect } from "./set-animation-effect.mjs";
 
 export const handlers = {
   ping,
@@ -35,5 +36,6 @@ export const handlers = {
   analyze_module: analyzeModule,
   index_knowledge: indexKnowledge,
   play_animation: playAnimation,
+  set_animation_effect: setAnimationEffect,
   "unsafe.eval": unsafeEval,
 };

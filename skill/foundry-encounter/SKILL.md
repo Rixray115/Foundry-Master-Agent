@@ -12,7 +12,8 @@ description: Create D&D 5e encounters on FoundryVTT — NPCs, monsters, tokens, 
 3. **Sincroniza conocimiento**: Llama `foundry_execute` con comando `sync_modules`.
    - Si hay módulos **desconocidos**, ejecuta el Learning Protocol para cada uno.
    - Si hay **versiones distintas**, nota la diferencia y ten cuidado al usar APIs.
-4. **Construye mapa mental**: Para cada módulo activo, busca `foundry_search_docs("<module> API")` para entender su API.
+4. **Consulta el knowledge graph**: Llama `foundry_query_graph` con query `"What are the god nodes and main communities?"` para entender la estructura global de los módulos.
+5. **Construye mapa mental**: Para cada módulo activo, busca `foundry_search_docs("<module> API")` para entender su API (búsqueda semántica).
 
 ## Learning Protocol (para módulos desconocidos)
 
@@ -53,6 +54,7 @@ Cuando `sync_modules` reporta módulos desconocidos:
 2. **Verifica conectividad**: Si `foundry_ping` falla, pide al usuario que abra Foundry en el navegador. No puedes operar sin navegador conectado.
 3. **Usa Plutonium para monsters**: Prefiere `plutonium_import` sobre `create_actors` para monsters. Plutonium importa stats, acciones, traits, items y sprites completos desde 5etools.
 4. **Reconoce tus límites**: Si no tienes conocimiento sobre un módulo, no inventes. Usa el Learning Protocol o pide ayuda al usuario.
+5. **GraphRAG**: Para preguntas estructurales ("qué llama a X", "cómo se relacionan A y B"), usa `foundry_query_graph`. Para preguntas semánticas ("cómo usar X"), usa `foundry_search_docs`.
 
 ## Workflow: Crear un encuentro
 
@@ -87,6 +89,14 @@ Cuando `sync_modules` reporta módulos desconocidos:
 | `sync_modules` | Sincroniza conocimiento de módulos |
 | `analyze_module` | Analiza API de un módulo |
 | `index_knowledge` | Persiste conocimiento en RAG |
+| `play_animation` | Reproduce animación JB2A via Sequencer |
+
+## Tools de PI (GraphRAG)
+
+| Tool | Tipo | Uso |
+|---|---|---|
+| `foundry_search_docs` | Semántico | "How to create actor with system data" |
+| `foundry_query_graph` | Estructural | "What calls rollDamage?" / "Sequencer→JB2A path" |
 
 ## Módulos Soportados (conocimiento curado)
 

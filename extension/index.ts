@@ -9,6 +9,7 @@
  *  - foundry_search_docs: búsqueda semántica sobre la API de Foundry + módulos
  *  - foundry_list_modules: lista los módulos activos en Foundry
  *  - foundry_ping: test de conectividad
+ *  - foundry_query_graph: query estructural sobre el knowledge graph (Graphify)
  *
  * Configuración:
  *  - PI_FOUNDRY_RELAY_URL (env) — default: http://127.0.0.1:7401
@@ -20,6 +21,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { execSync } from "node:child_process";
 
 const RELAY_URL = process.env.PI_FOUNDRY_RELAY_URL ?? "http://127.0.0.1:7401";
 const RAG_URL = process.env.PI_FOUNDRY_RAG_URL ?? "http://127.0.0.1:7402";
@@ -94,6 +96,7 @@ const COMMAND_NAMES = [
   "analyze_module",
   "index_knowledge",
   "play_animation",
+  "set_animation_effect",
 ] as const;
 
 export default function foundryExtension(pi: ExtensionAPI) {
@@ -238,6 +241,77 @@ Parámetros:
         content: [{ type: "text", text: formatted || "No results found." }],
         details: { query: params.query, count: data.count, results: data.results },
       };
+    },
+  });
+
+  // ─── Tool: foundry_query_graph ───────────────────────────
+  pi.registerTool({
+    name: "foundry_query_graph",
+    label: "Foundry Query Graph",
+    description: `Structural query over the Foundry modules knowledge graph (Graphify).
+Returns nodes, edges, and communities from the code AST graph.
+
+Use this for STRUCTURAL questions like:
+- "What classes does MidiQOL have?"
+- "What calls rollDamage?"
+- "How does Sequencer relate to JB2A?"
+- "What are the god nodes?"
+
+For SEMANTIC questions ("how to create an actor"), use foundry_search_docs instead.
+
+Parameters:
+- query: natural language question
+- mode: "bfs" (broad traversal, default) or "dfs" (deep path tracing)
+- budget: max tokens in response (default 1500)`,
+    promptSnippet: "Query the Foundry modules knowledge graph (structural relationships, call graphs)",
+    promptGuidelines: [
+      "Use foundry_query_graph for STRUCTURAL questions (call graphs, class hierarchies, cross-module dependencies).",
+      "Use foundry_search_docs for SEMANTIC questions (how to use an API, documentation search).",
+      "Combine both: query the graph for structure, then search docs for usage patterns.",
+    ],
+    parameters: Type.Object({
+      query: Type.String({ description: "Natural language question about module structure" }),
+      mode: Type.Optional(
+        Type.Union(
+          [Type.Literal("bfs"), Type.Literal("dfs")],
+          { description: "Traversal mode: bfs (broad) or dfs (deep path tracing)" }
+        )
+      ),
+      budget: Type.Optional(Type.Number({ description: "Max tokens in response (default 1500)" })),
+    }),
+    async execute(_toolCallId, params, _signal, onUpdate) {
+      onUpdate?.({ content: [{ type: "text", text: `🔗 Graph: ${params.query}` }] });
+
+      const graphDir = process.env.PI_FOUNDRY_GRAPH_DIR || "/root/pi-foundry/graphrag/graphify-out";
+      const graphPath = `${graphDir}/merged-graph.json`;
+      const budget = params.budget || 1500;
+      const queryType = params.mode === "dfs" ? "path_query" : "query";
+
+      try {
+        const cmd = `graphify query "${params.query.replace(/"/g, '\\"')}" --graph "${graphPath}" --type ${queryType} 2>&1`;
+        const stdout = execSync(cmd, {
+          timeout: 30000,
+          maxBuffer: 1024 * 1024 * 10,
+          encoding: "utf-8",
+        });
+
+        // Truncate to budget tokens (~4 chars per token)
+        const maxChars = budget * 4;
+        const truncated = stdout.length > maxChars
+          ? stdout.slice(0, maxChars) + "\n... (truncated)"
+          : stdout;
+
+        return {
+          content: [{ type: "text", text: truncated || "No graph results found." }],
+          details: { query: params.query, mode: queryType, graphPath },
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return {
+          content: [{ type: "text", text: `Graph query error: ${msg}` }],
+          details: { query: params.query, error: msg },
+        };
+      }
     },
   });
 
