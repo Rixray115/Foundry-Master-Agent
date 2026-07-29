@@ -1,4 +1,4 @@
-# JB2A DnD5e v0.8.9 — Biblioteca de Animaciones
+# JB2A DnD5e v0.9.1 — Biblioteca de Animaciones
 
 ## Resumen
 

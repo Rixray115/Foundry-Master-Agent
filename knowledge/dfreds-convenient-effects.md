@@ -1,4 +1,4 @@
-# Dfreds Convenient Effects v9.0.2 — Efectos de Estado Centralizados
+# Dfreds Convenient Effects v9.2.1 — Efectos de Estado Centralizados
 
 ## API Global
 

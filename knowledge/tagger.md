@@ -1,4 +1,4 @@
-# Tagger v1.5.4 — Etiquetado de Tokens
+# Tagger v1.6.0 — Etiquetado de Tokens
 
 ## API Global
 

@@ -1,4 +1,4 @@
-# Coven's Automation Toolkit (CAT) v0.0.5 — Kit de Automatización
+# Coven's Automation Toolkit (CAT) v0.0.6 — Kit de Automatización
 
 ## API
 

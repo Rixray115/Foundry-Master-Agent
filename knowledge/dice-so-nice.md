@@ -1,4 +1,4 @@
-# Dice So Nice v6.2.8 — Dados 3D
+# Dice So Nice v6.2.9 — Dados 3D
 
 ## API Global
 

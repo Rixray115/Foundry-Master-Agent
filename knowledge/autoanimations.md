@@ -1,4 +1,4 @@
-# Automated Animations v6.8.5 — Auto-play de Animaciones
+# Automated Animations v7.0.17 — Auto-play de Animaciones
 
 ## Concepto
 

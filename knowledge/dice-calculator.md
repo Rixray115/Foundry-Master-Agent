@@ -1,4 +1,4 @@
-# Dice Tray v3.7.0 — Bandeja de Dados
+# Dice Tray v3.7.1 — Bandeja de Dados
 
 ## API
 
