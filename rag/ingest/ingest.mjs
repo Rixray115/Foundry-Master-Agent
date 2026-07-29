@@ -13,6 +13,12 @@ import { join } from "node:path";
 const FOUNDRY_MJS = process.env.FOUNDRY_MJS_PATH
   ?? "C:/Program Files/Foundry Virtual Tabletop/resources/app/public/scripts/foundry.mjs";
 
+// Cross-platform modules directory — override via FOUNDRY_MODULES_DIR env var
+const MODULES_DIR = process.env.FOUNDRY_MODULES_DIR
+  ?? (process.platform === "win32"
+    ? "C:/Users/<user>/AppData/Local/FoundryVTT/Data/modules"
+    : "/var/foundryvtt/data/Data/modules");
+
 const KNOWLEDGE_DIR = join(import.meta.dirname, "..", "..", "knowledge");
 
 /**
@@ -91,7 +97,7 @@ export async function ingestFoundry() {
  * Ingesta un módulo de terceros (Sequencer, Tagger, MidiQOL, etc.)
  */
 export async function ingestModule(moduleId) {
-  const modulePath = `C:/Users/ricar/AppData/Local/FoundryVTT/Data/modules/${moduleId}`;
+  const modulePath = join(MODULES_DIR, moduleId);
   console.log(`[ingest] === Módulo: ${moduleId} ===`);
 
   const { readdir, stat } = await import("node:fs/promises");
