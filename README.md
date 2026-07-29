@@ -1,35 +1,48 @@
-# PI-Foundry: Agente IA para FoundryVTT
+# PI-Foundry: Agente IA para FoundryVTT V14
 
-Arquitectura que permite a un agente de IA (PI) interactuar nativamente con FoundryVTT V14 para crear contenido on-the-fly: tokens, NPCs, macros, journal entries, animaciones y más.
+Arquitectura que permite a un agente de IA (PI) interactuar nativamente con FoundryVTT V14 para crear contenido on-the-fly: tokens, NPCs, macros, journal entries, animaciones, importación de monsters y más.
 
 ## ✨ Características
 
-- 🎯 **Importación de monsters** desde 5etools via Plutonium (stats, acciones, traits, items, sprites)
-- 🎬 **Animaciones** via Sequencer + JB2A (2104 animaciones profesionales)
-- ⚔️ **Automatización de combate** via MidiQOL (hooks, workflow, macros)
-- 🧠 **RAG local** sobre la API de Foundry + módulos (búsqueda semántica con embeddings locales)
-- 🔄 **Auto-aprendizaje**: el agente detecta módulos nuevos y aprende a usarlos automáticamente
-- 🔒 **Seguridad**: localhost binding, HMAC-SHA256 auth, comandos tipados (no raw eval)
+- 🎯 **Importación de monsters** desde 5etools via Plutonium (stats, acciones, traits, items, sprites) + homebrew (294 criaturas Monster Hunter)
+- 🎬 **Animaciones** via Sequencer + JB2A (2104 animaciones profesionales) + Active Effects con toggle on/off
+- ⚔️ **Automatización de combate** via MidiQOL + DAE + Times Up + Active Auras
+- 🧠 **RAG local** sobre 64 documentos curados de módulos + API de Foundry (búsqueda semántica con embeddings locales)
+- 📊 **Knowledge Graph** via Graphify — 45K+ nodos cubriendo 55 módulos instalados, con query/path/explain estructural
+- 🔄 **Auto-aprendizaje**: el agente detecta módulos nuevos y aprende a usarlos automáticamente (Learning Protocol)
+- 🔒 **Seguridad**: localhost binding, HMAC-SHA256 auth, comandos tipados, execFile sin shell injection
 
-## 🚀 Quickstart (5 min)
+## 🚀 Quickstart
 
 ```bash
 # 1. Clonar
-git clone https://github.com/Zefirox/Foundry-Master-Agent.git
-pi-foundry
+git clone https://github.com/Rixray115/Foundry-Master-Agent.git pi-foundry
 cd pi-foundry
 
-# 2. Instalar
-./scripts/install.sh --foundry-dir /path/to/foundryuserdata --world my-world
+# 2. Instalar dependencias
+cd relay && npm install && cd ..
+cd rag && npm install && cd ..
+npm install
 
-# 3. Abrir Foundry en el navegador
-#    (necesario para ejecución — el agente opera a través del cliente GM)
+# 3. Generar secret y symlinkar módulo
+./scripts/generate-secret.sh
+ln -s $(pwd)/module /var/foundryvtt/data/Data/modules/pi-bridge
 
-# 4. Activar módulo 'pi-bridge' en Foundry → Manage Modules → recargar (F5)
+# 4. Configurar Graphify
+uv tool install graphifyy
+graphify update ~/pi-foundry
 
-# 5. Pídele a PI:
-#    "Crea un encuentro con 3 orcos y un clérigo"
+# 5. Configurar PI (en ~/.pi/agent/settings.json):
+#    "packages": ["/home/user/pi-foundry/extension"]
+
+# 6. Abrir Foundry → activar pi-bridge → configurar secret → F5
+
+# 7. Probar:
+#    foundry_ping
+#    foundry_execute("plutonium_import", { creatures: [{ name: "Orc", source: "MM" }] })
 ```
+
+> **Linux paths:** Foundry data puede estar en `/var/foundryvtt/data` (system install) o `~/foundryuserdata` (manual). Ajusta según tu instalación.
 
 ## 📋 Requisitos
 
@@ -58,37 +71,37 @@ PI necesita un modelo LLM configurado. Ver `config/pi-settings.json.example` par
 
 | Componente | Versión requerida | Notas |
 |---|---|---|
-| FoundryVTT | **V14** | El install verifica la versión y aborta si no coincide |
-| D&D 5e System | **5.3.2** (D&D 2024) | Instalar desde Foundry's system installer |
+| FoundryVTT | **V14** (build 364+) | Solo V14 soportado |
+| D&D 5e System | **5.3.3** | Instalar desde Foundry's system installer |
 | World | cualquiera creado | El agente opera sobre el world activo |
 
-> ⚠️ **Importante**: El agente está pre-entrenado para Foundry V14 + dnd5e 5.3.x.
-> Otras versiones pueden no funcionar. El install lo detecta y aborta (usa `--force` bajo tu responsabilidad).
-
-#### 3. Node.js (obligatorio)
+#### 3. Node.js + Python
 
 ```bash
-node --version  # debe ser v20 o superior (recomendado v24)
+node --version    # v20+ (usado por relay/rag)
+python3 --version # 3.12+ (usado por graphify)
 ```
 
-### Módulos de Foundry recomendados (pre-entrenados)
+### Módulos de Foundry recomendados
 
-Instala estos módulos en Foundry antes de la instalación para aprovechar todo el conocimiento curado:
+Instala estos módulos para aprovechar el conocimiento curado completo (64 docs):
 
 | Módulo | Versión | Función |
 |---|---|---|
-| MidiQOL | 13.0.61 | Automatización de combate |
-| Sequencer | 4.0.1 | Framework de animaciones |
-| JB2A DnD5e | 0.8.9 | 2104 animaciones .webm |
-| DAE | 13.0.27 | Dynamic Active Effects |
+| MidiQOL | 14.0.11 | Automatización de combate |
+| Sequencer | 4.2.3 | Framework de animaciones |
+| JB2A DnD5e | 0.9.1 | 2104 animaciones .webm |
+| DAE | 14.0.12 | Dynamic Active Effects |
 | Active Auras | 0.12.7 | Efectos por proximidad |
 | Times Up | 13.1.9 | Duración de efectos |
-| Plutonium | 2.15.0 | Import desde 5etools |
-| Tagger | 1.5.4 | Etiquetado de tokens |
-| Automated Animations | 6.8.5 | Auto-play de animaciones |
-| Chris's Premades | 1.5.27 | Items pre-automatizados |
+| Plutonium | 2.16.2.v14 | Import desde 5etools + homebrew |
+| Tagger | 1.6.0 | Etiquetado de tokens |
+| Automated Animations | 7.0.17 | Auto-play de animaciones |
+| Tokenizer 2 | 1.2.5 | Generación de token art |
+| DFreds Convenient Effects | 9.2.1 | 400+ efectos pre-built |
+| Dice So Nice | 6.2.9 | Dados 3D |
 
-> Si no tienes todos, el agente igual funciona — simplemente no tendrá conocimiento curado para los que falten. Los módulos nuevos se pueden aprender automáticamente via el Learning Protocol.
+> El agente funciona con cualquier subconjunto — los módulos faltantes se aprenden automáticamente via el Learning Protocol.
 
 ## 🏗️ Arquitectura
 
@@ -114,15 +127,46 @@ Ver [ARCHITECTURE.md](ARCHITECTURE.md) para detalles.
 
 ```
 pi-foundry/
-├── relay/          # Bridge HTTP+WS (Node)
-├── module/         # Módulo FoundryVTT (browser-side, 15 handlers)
-├── extension/      # Extensión PI (4 tools)
-├── rag/            # RAG service (embeddings + LevelDB)
-├── skill/          # PI skill (foundry)
-├── knowledge/      # Conocimiento pre-entrenado (12 archivos curados)
-├── scripts/        # Instalación y mantenimiento
+├── relay/          # Bridge HTTP+WS (Node, puerto 7401)
+├── module/         # Módulo FoundryVTT (browser-side, 22 handlers)
+├── extension/      # Extensión PI (5 tools + foundry_query_graph)
+├── rag/            # RAG service (embeddings locales + LevelDB, puerto 7402)
+├── skill/          # PI skill (foundry, con Boot/Learning/Self-Healing Protocols)
+├── knowledge/      # 64 documentos curados + 54 análisis automáticos
+├── scripts/        # Instalación, análisis de módulos, build de grafo
 ├── config/         # Plantillas de configuración
-└── docs/           # Documentación
+└── .gitignore      # Excluye .env, .secret, graphify-out/, node_modules/
+```
+
+## 🧠 Knowledge Graph (Graphify)
+
+El proyecto incluye un knowledge graph estructural de 45K+ nodos cubriendo los 55 módulos instalados + el código del proyecto + 64 docs de conocimiento:
+
+```bash
+# Construir/actualizar el grafo
+graphify update ~/pi-foundry
+
+# Queries estructurales
+foundry_query_graph "What modules hook into renderCombatTracker?"
+foundry_query_graph "How does Sequencer relate to JB2A?" --mode dfs
+
+# Queries semánticas (RAG)
+foundry_search_docs "create actor with system data" --module core
+```
+
+## 🏠 Homebrew / Fuentes adicionales
+
+Plutonium soporta homebrew desde el repo `TheGiddyLimit/homebrew`. Ejemplo — Monster Hunter (294 criaturas):
+
+```bash
+curl -sL "https://raw.githubusercontent.com/TheGiddyLimit/homebrew/master/collection/Amellwind%3B%20Monster%20Hunter%20Monster%20Manual.json" \
+  -o "Data/modules/plutonium/data/bestiary/bestiary-mhmm.json"
+
+# Luego importar con source "MHMM"
+foundry_execute("plutonium_import", { creatures: [{ name: "Rathalos", source: "MHMM" }] })
+
+# Generar tokens post-import (homebrew no incluye arte)
+Tokenizer2.tokenizeBatch(actors)
 ```
 
 ## 🧠 Auto-aprendizaje de módulos
@@ -138,10 +182,14 @@ Esto funciona tanto al instalar como cuando el usuario añade módulos después.
 
 ## 📚 Documentación
 
-- [INSTALL.md](INSTALL.md) — Guía detallada de instalación
+- [INSTALL.md](INSTALL.md) — Guía detallada de instalación (Linux + systemd + Graphify)
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Diseño y componentes
-- [knowledge/](knowledge/) — Conocimiento curado sobre módulos
+- [CHANGELOG.md](CHANGELOG.md) — Historial de versiones (0.1.0 → 0.3.0)
+- [knowledge/](knowledge/) — 64 documentos curados de módulos
+- [knowledge/playbook.md](knowledge/playbook.md) — Recetario de 493 líneas con patrones verificados
+- [knowledge/graphify-integration.md](knowledge/graphify-integration.md) — Arquitectura GraphRAG
+- [FOUNDRY-HERMES-MIGRATION.md](FOUNDRY-HERMES-MIGRATION.md) — Plan de migración
 
 ## 📄 Licencia
 
-MIT
+MIT — ver [LICENSE](LICENSE)
