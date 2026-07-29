@@ -49,7 +49,7 @@ if [ -z "$FOUNDRY_DIR" ] || [ -z "$WORLD" ]; then
 fi
 
 # ─── Versiones soportadas ─────────────────────────────────────
-SUPPORTED_FOUNDRY="13.351"
+SUPPORTED_FOUNDRY="14.364"
 SUPPORTED_DND5E="5.3.2"
 
 echo "╔══════════════════════════════════════════════════╗"

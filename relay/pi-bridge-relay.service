@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/rixray/pi-foundry/relay
+WorkingDirectory=/root/pi-foundry/relay
 Environment=PI_BRIDGE_PORT=7401
-Environment=PI_BRIDGE_SECRET_FILE=/home/rixray/pi-foundry/.secret
-Environment=PI_BRIDGE_AUDIT_LOG=/home/rixray/pi-foundry/relay/audit.jsonl
+Environment=PI_BRIDGE_SECRET_FILE=/root/pi-foundry/.secret
+Environment=PI_BRIDGE_AUDIT_LOG=/root/pi-foundry/relay/audit.jsonl
 ExecStart=/usr/bin/node server.mjs
 Restart=on-failure
 RestartSec=3
@@ -20,7 +20,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/rixray/pi-foundry
+ReadWritePaths=/root/pi-foundry
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 LimitNOFILE=64
 
