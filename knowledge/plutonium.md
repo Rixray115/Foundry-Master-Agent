@@ -51,6 +51,47 @@ const result = await game.plutonium.importer.creature.pImportEntry(entry, {
 | `MPMM` | bestiary-mpmm.json | Mordenkainen Presents: Monsters of the Multiverse |
 | `ToB1-2023` | bestiary-tob1-2023.json | Tome of Beasts 1 (2023) |
 
+## Homebrew Sources
+
+Plutonium puede importar homebrew desde archivos JSON colocados en:
+```
+Data/modules/plutonium/data/bestiary/bestiary-{source}.json
+```
+
+El repositorio oficial de homebrew 5etools está en:
+```
+https://github.com/TheGiddyLimit/homebrew/tree/master/collection
+```
+
+### Amellwind's Monster Hunter
+
+| Source | Archivo | Contenido |
+|---|---|---|
+| `MHMM` | bestiary-mhmm.json | Monster Hunter Monster Manual — 294 criaturas (Rathalos, Nergigante, Zinogre, etc.) |
+| `AGMH` | bestiary-agmh.json | Amellwind's Guide to Monster Hunting — clases, items, 7 criaturas |
+
+**Instalación:**
+```bash
+# Descargar e instalar el bestiario MH
+curl -sL "https://raw.githubusercontent.com/TheGiddyLimit/homebrew/master/collection/Amellwind%3B%20Monster%20Hunter%20Monster%20Manual.json" \
+  -o "Data/modules/plutonium/data/bestiary/bestiary-mhmm.json"
+```
+
+**Importar criaturas:**
+```js
+// Via plutonium_import handler
+foundry_execute("plutonium_import", {
+  creatures: [
+    { name: "Rathalos", source: "MHMM" },
+    { name: "Nergigante", source: "MHMM" }
+  ]
+})
+```
+
+⚠️ **Token art NO incluido**: Las importaciones homebrew NO incluyen imágenes de token. Los actores tendrán el portrait de 5e.tools (si existe) pero los tokens en canvas usarán `mystery-man.svg`. Usar `Tokenizer2.tokenizeBatch(actors)` para generar tokens con frames desde los portraits disponibles.
+
+> El arte oficial de tokens Monster Hunter es un producto separado de Patreon (Amellwind).
+
 ## Otros Importers
 
 ### Hechizos
