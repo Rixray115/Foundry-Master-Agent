@@ -50,22 +50,27 @@ graphify update ~/pi-foundry
 
 Estos componentes **deben estar instalados antes** de ejecutar el instalador:
 
-#### 1. PI Agent (obligatorio)
+#### 1. Agente IA — PI o Hermes
 
-[PI](https://github.com/earendil-works/pi-coding-agent) es el agente de IA que razona, decide qué comandos enviar y sintetiza conocimiento. **Sin PI, este proyecto no funciona** — el resto de componentes (relay, módulo, RAG) son infraestructura que PI usa.
+La infraestructura (relay, RAG, módulo Foundry) es **agent-agnostic** — funciona con ambos:
+
+| Agente | Instalación | Guía |
+|---|---|---|
+| **PI Agent** | `npm install -g @earendil-works/pi-coding-agent` | [INSTALL.md](INSTALL.md) |
+| **Hermes Agent** | Python 3.10+ + `hermes-plugin/` | [INSTALL-HERMES.md](INSTALL-HERMES.md) |
 
 ```bash
-# Instalar PI globalmente
+# PI Agent
 npm install -g @earendil-works/pi-coding-agent
-
-# Verificar instalación
 pi --version
-
-# El directorio ~/.pi/agent/ debe existir
 ls ~/.pi/agent/
+
+# Hermes Agent (alternativa)
+pip install hermes-agent
+# Configurar hermes-plugin/ según INSTALL-HERMES.md
 ```
 
-PI necesita un modelo LLM configurado. Ver `config/pi-settings.json.example` para referencia.
+El agente necesita un modelo LLM configurado. Ver `config/pi-settings.json.example` para PI, o la documentación de Hermes para configurar su modelo.
 
 #### 2. FoundryVTT (obligatorio)
 
