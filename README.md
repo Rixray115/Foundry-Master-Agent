@@ -183,6 +183,8 @@ Esto funciona tanto al instalar como cuando el usuario añade módulos después.
 ## 📚 Documentación
 
 - [INSTALL.md](INSTALL.md) — Guía detallada de instalación (Linux + systemd + Graphify)
+- [INSTALL-WINDOWS.md](INSTALL-WINDOWS.md) — Guía de instalación para Windows 11
+- [INSTALL-HERMES.md](INSTALL-HERMES.md) — Guía para Hermes Agent (infraestructura compartida)
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Diseño y componentes
 - [CHANGELOG.md](CHANGELOG.md) — Historial de versiones (0.1.0 → 0.3.0)
 - [knowledge/](knowledge/) — 64 documentos curados de módulos
