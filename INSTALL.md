@@ -72,10 +72,19 @@ El secret HMAC-SHA256 es la clave compartida que autentica toda comunicación en
 #### 2. Instalar dependencias
 
 ```bash
+# Dependencias del relay (WebSocket server, puerto 7401)
 cd relay && npm install && cd ..
+
+# Dependencias del RAG (Transformers.js + LevelDB, puerto 7402)
 cd rag && npm install && cd ..
-npm install  # root (lmdb)
+
+# Dependencias raíz (lmdb para cache del módulo)
+npm install
 ```
+
+> La extensión PI (`extension/`) no necesita `npm install` — PI resuelve sus dependencias (typebox) desde su propia instalación.
+
+> Si `npm install` en `rag/` tarda mucho, es normal — descarga ~500MB de modelos ONNX para embeddings locales.
 
 #### 3. Symlinkar módulo en Foundry
 
@@ -92,22 +101,29 @@ En `~/.pi/agent/settings.json`, añadir:
 
 #### 5. Configurar servicios systemd
 
-Editar `relay/pi-bridge-relay.service` y `rag/pi-rag.service` — reemplazar todas las ocurrencias de `/root/pi-foundry` con la ruta real del proyecto:
+Los archivos `.service` usan `/root/pi-foundry` como placeholder. Usa `sed` para reemplazar con tu ruta real:
 
-```ini
-WorkingDirectory=/home/user/pi-foundry/relay
-Environment=PI_BRIDGE_SECRET_FILE=/home/user/pi-foundry/.secret
-ExecStart=/usr/bin/node server.mjs
-ReadWritePaths=/home/user/pi-foundry
-```
-
-Luego instalar:
 ```bash
+# Reemplazar /root/pi-foundry con tu ruta real en ambos servicios
+sed -i "s|/root/pi-foundry|$(pwd)|g" relay/pi-bridge-relay.service
+sed -i "s|/root/pi-foundry|$(pwd)|g" rag/pi-rag.service
+
+# Verificar que node está en /usr/bin (ajusta si usas nvm/otro path)
+which node  # debería mostrar /usr/bin/node o similar
+# Si no es /usr/bin/node, ajusta ExecStart en ambos .service:
+# sed -i "s|/usr/bin/node|$(which node)|" relay/pi-bridge-relay.service rag/pi-rag.service
+
+# Instalar y arrancar
 sudo cp relay/pi-bridge-relay.service /etc/systemd/system/
 sudo cp rag/pi-rag.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now pi-bridge-relay pi-rag
+
+# Verificar que arrancaron
+sudo systemctl status pi-bridge-relay pi-rag
 ```
+
+> Si no usas systemd, arranca manualmente: `cd relay && node server.mjs &` y `cd rag && node server.mjs &`
 
 #### 6. Configurar Graphify (knowledge graph)
 
@@ -115,30 +131,48 @@ sudo systemctl enable --now pi-bridge-relay pi-rag
 # Instalar graphify
 uv tool install graphifyy
 
-# Configurar Python path y API key
+# Configurar entorno
 mkdir -p ~/.pi/graphify/corpus ~/.pi/graphify/graphify-out
-uv tool dir  # copia la ruta
-echo "<ruta>/graphifyy/bin/python" > ~/.pi/graphify/.graphify_python
-echo "sk-your-deepseek-key" > ~/.pi/graphify/.deepseek_key
+
+# Guardar path del intérprete Python de graphify
+uv tool dir | head -1 | xargs -I{} echo "{}/graphifyy/bin/python" \
+  > ~/.pi/graphify/.graphify_python
+
+# Guardar API key de DeepSeek (o la que uses)
+echo "sk-your-api-key" > ~/.pi/graphify/.deepseek_key
 chmod 600 ~/.pi/graphify/.deepseek_key
 
-# Crear registro de proyectos
-echo '{"projects":[{"name":"pi-foundry","path":"'$HOME'/pi-foundry"}]}' \
+# Registrar este proyecto para el grafo global
+echo '{"projects":[{"name":"pi-foundry","path":"'$(pwd)'"}]}' \
   > ~/.pi/graphify/corpus/projects.json
 
-# Construir grafo inicial
-graphify update ~/pi-foundry
+# Construir grafo inicial (AST, sin LLM — solo código)
+graphify update .
 ```
+
+> El grafo global requiere además `merge.mjs` y `graphify-global.ts` en `~/.pi/agent/extensions/`. Si ya tienes la extensión graphify-global configurada en PI, consulta su documentación para generar `merge.mjs`.
 
 #### 7. Indexar knowledge en RAG
 
 ```bash
-# Con el RAG service corriendo (puerto 7402):
+# Con el RAG service corriendo (puerto 7402), indexar los 64 docs:
+RAG_URL="http://127.0.0.1:7402"
 for f in knowledge/*.md; do
-  curl -s -X POST http://127.0.0.1:7402/index-document \
-    -H "Content-Type: application/json" \
-    -d "{\"text\":\"$(cat $f | sed 's/"/\\"/g' | tr '\n' ' ')\",\"metadata\":{\"source\":\"$(basename $f .md)\",\"type\":\"knowledge\"}}"
+  python3 -c "
+import json, sys
+with open('$f') as fh:
+    text = fh.read()
+source = '$f'.replace('knowledge/','').replace('.md','')
+body = json.dumps({'text': text, 'metadata': {'source': source, 'type': 'knowledge'}})
+import urllib.request
+req = urllib.request.Request('$RAG_URL/index-document', data=body.encode(),
+    headers={'Content-Type': 'application/json'})
+print(urllib.request.urlopen(req).read().decode())
+"
 done
+
+# Verificar
+curl -s "$RAG_URL/health"
 ```
 
 #### 8. Analizar módulos
